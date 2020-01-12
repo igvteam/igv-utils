@@ -1,7 +1,7 @@
-import $ from './igvjs/vendor/jquery-3.3.1.slim.js';
+import $ from './vendor/jquery-3.3.1.slim.js';
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
-import {appleCrayonPalette} from "./igvjs/util/colorPalletes.js";
-import IGVColor from "./igvjs/igv-color.js";
+import {appleCrayonPalette} from "./util/colorPalletes.js";
+import IGVColor from "./igv-color.js";
 
 function createColorSwatchSelector($genericContainer, colorHandler, defaultColor) {
 
