@@ -5,7 +5,7 @@ import Alert from "./ui/alert.js";
 import oauth from "./oauth.js";
 import igvxhr from "./igvxhr.js";
 import GoogleUtils from "./google/googleUtils.js";
-
+import GtexUtils from "./gtex/gtexUtils.js";
 import IGVColor from "./igv-color.js";
 import IGVMath from "./igv-math.js";
 import * as Utils from './utils.js';
@@ -21,6 +21,7 @@ export {
     GenericContainer,
     makeDraggable,
     GoogleUtils,
+    GtexUtils,
     oauth,
     igvxhr,
     EventBus,
