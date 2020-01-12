@@ -1,0 +1,24 @@
+{
+  "name": "igv-widgets",
+  "version": "0.1.0",
+  "description": "Misc code shared by igvteam projects",
+  "files": [
+    "src/**"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igvteam/igv-utils.git"
+  },
+  "keywords": [
+    "igv"
+  ],
+  "author": "Jim Robinson <jrobinso@ucsd.edu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/igvteam/igv-utils/issues"
+  },
+  "homepage": "https://github.com/igvteam/utilss#readme"
+}
