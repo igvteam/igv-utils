@@ -1,6 +1,7 @@
 import { makeDraggable } from "./igvjs/ui/draggable.js";
 import { GenericContainer } from "./igvjs/ui/genericContainer.js";
 import EventBus from './jb/eventBus.js';
+import Alert from "./igvjs/ui/alert.js";
 import oauth from "./igvjs/oauth.js";
 import igvxhr from "./igvjs/igvxhr.js";
 import GoogleUtils from "./igvjs/google/googleUtils.js";
@@ -23,6 +24,7 @@ export {
     oauth,
     igvxhr,
     EventBus,
+    Alert,
     IGVColor,
     IGVMath,
     WidgetUtils,
