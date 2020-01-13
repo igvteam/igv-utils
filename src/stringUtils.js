@@ -1,4 +1,3 @@
-
 /**
  * Covers string literals and String objects
  * @param x
@@ -55,6 +54,16 @@ function splitStringRespectingQuotes(string, delim) {
     return tokens;
 }
 
+function stripQuotes(str) {
+    if (str.startsWith("'") || str.startsWith('"')) {
+        str = str.substring(1);
+    }
+    if (str.endsWith("'") || str.endsWith('"')) {
+        str = str.substring(0, str.length - 1);
+    }
+    return str;
+}
+
 function hashCode(s) {
     return s.split("").reduce(function (a, b) {
         a = ((a << 5) - a) + b.charCodeAt(0);
@@ -100,4 +109,7 @@ function uncompressString(enc, Zlib) {
     return str;
 }
 
-export {isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, hashCode, compressString, uncompressString};
+export {
+    isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, stripQuotes,
+    hashCode, compressString, uncompressString
+};
