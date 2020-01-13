@@ -23,7 +23,6 @@
  *
  */
 
-import igvxhr from "../igvxhr.js";
 
 var BitlyURL = function ({ apiKey, hostname }) {
     this.api = "https://api-ssl.bitly.com";
@@ -33,7 +32,7 @@ var BitlyURL = function ({ apiKey, hostname }) {
 }
 
 
-BitlyURL.prototype.shortenURL = async function (url) {
+BitlyURL.prototype.shortenURL = async function (url, igvxhr) {
 
     var self = this;
 
@@ -65,7 +64,7 @@ BitlyURL.prototype.shortenURL = async function (url) {
 };
 
 
-BitlyURL.prototype.expandURL = function (url) {
+BitlyURL.prototype.expandURL = function (url, igvxhr) {
 
     var self = this;
 

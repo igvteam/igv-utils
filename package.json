@@ -1,5 +1,5 @@
 {
-  "name": "igv-widgets",
+  "name": "igv-utils",
   "version": "0.1.0",
   "description": "Misc code shared by igvteam projects",
   "files": [
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/igvteam/igv-utils/issues"
   },
-  "homepage": "https://github.com/igvteam/utilss#readme"
+  "homepage": "https://github.com/igvteam/utils#readme",
+  "devDependencies": {
+    "rollup": "^1.27.8"
+  }
 }

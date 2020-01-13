@@ -1,8 +1,6 @@
-import igvxhr from "../igvxhr.js";
-
 const GtexUtils = {
 
-    getTissueInfo: function (datasetId, baseURL) {
+    getTissueInfo: function (datasetId, baseURL, igvxhr) {
         datasetId = datasetId || 'gtex_v8';
         baseURL = baseURL || 'https://gtexportal.org/rest/v1';
         let url = baseURL + '/dataset/tissueInfo?datasetId=' + datasetId;

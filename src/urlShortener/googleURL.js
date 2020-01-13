@@ -21,15 +21,13 @@
  *
  */
 
-import igvxhr from "../igvxhr.js";
-
 const GoogleURL = function ({ apiKey, hostname }) {
     this.api = "https://www.googleapis.com/urlshortener/v1/url";
     this.apiKey = apiKey;
     this.hostname = hostname || "goo.gl";
 }
 
-GoogleURL.prototype.shortenURL = function (url) {
+GoogleURL.prototype.shortenURL = function (url, igvxhr) {
 
     var self = this;
 
@@ -51,7 +49,7 @@ GoogleURL.prototype.shortenURL = function (url) {
 }
 
 
-GoogleURL.prototype.expandURL = function (url) {
+GoogleURL.prototype.expandURL = function (url, igvxhr) {
 
     var self = this;
     return getApiKey.call(this)

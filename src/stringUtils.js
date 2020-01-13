@@ -1,4 +1,3 @@
-import Zlib from "../vendor/zlib_and_gzip.js"
 
 /**
  * Covers string literals and String objects
@@ -67,7 +66,7 @@ function hashCode(s) {
  * Compress string and encode in a url safe form
  * @param s
  */
-function compressString(str) {
+function compressString(str, Zlib) {
     const bytes = [];
     for (var i = 0; i < str.length; i++) {
         bytes.push(str.charCodeAt(i));
@@ -84,7 +83,7 @@ function compressString(str) {
  * @param enc
  * @returns {string}
  */
-function uncompressString(enc) {
+function uncompressString(enc, Zlib) {
     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
 
     const compressedString = atob(enc);

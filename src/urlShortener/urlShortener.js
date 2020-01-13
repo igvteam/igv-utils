@@ -6,7 +6,6 @@
 import TinyURL from "./tinyURL.js";
 import GoogleURL from "./googleURL.js";
 import BitlyURL from "./bitlyURL.js";
-import Alert from "../ui/alert.js";
 
 let urlShortenerList = [];
 
@@ -38,14 +37,14 @@ const getShortener = shortener => {
         } else if (provider === "bitly") {
             return new BitlyURL(shortener);
         } else {
-            Alert.presentAlert(`Unknown url shortener provider: ${ provider}`);
+            alert(`Unknown url shortener provider: ${ provider}`);
         }
     } else {
         // Custom
         if (typeof shortener.shortenURL === "function") {
             return shortener;
         } else {
-            Alert.presentAlert("URL shortener object must define functions 'shortenURL'");
+            alert("URL shortener object must define functions 'shortenURL'");
         }
     }
 };

@@ -21,8 +21,8 @@
  *
  */
 
-import {knownFileExtensions} from "./util/trackUtils.js";
-import {getExtension} from "./util/fileUtils.js";
+import {knownFileExtensions} from "./trackUtils.js";
+import {getExtension} from "./fileUtils.js";
 
 let validIndexExtensionSet = new Set(['fai', 'bai', 'crai', 'tbi', 'idx']);
 

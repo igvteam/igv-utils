@@ -24,7 +24,7 @@
  */
 
 import {isFilePath} from './fileUtils.js'
-import FileFormats from "../feature/fileFormats.js";
+import FileFormats from "./fileFormats.js";
 
 const knownFileExtensions = new Set([
 
