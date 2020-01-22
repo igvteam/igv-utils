@@ -1,2 +1,13 @@
+.DS_Store
+/.vscode/
+/es5/
 /.idea/
-/igv-utils.iml
+/igv.js.iml
+/node_modules/.bin/cake
+/node_modules
+/tmp/
+/cBio/
+/miRNA/
+*.iml
+/npm-debug.log
+/examples/css/.sass-cache/
