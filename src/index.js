@@ -6,6 +6,7 @@ import * as IGVUtils from './util/igvUtils.js'
 import * as StringUtils from './stringUtils.js';
 import * as TrackUtils from './trackUtils.js';
 import * as FileUtils from './fileUtils.js';
+import * as URIUtils from 'util/uriUtils.js';
 import * as URLShortener from './urlShortener/urlShortener.js';
 
 export {
@@ -17,5 +18,6 @@ export {
     TrackUtils,
     URLShortener,
     FileUtils,
+    URIUtils,
     Utils
 }
