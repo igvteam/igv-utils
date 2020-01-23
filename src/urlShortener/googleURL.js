@@ -37,7 +37,7 @@ GoogleURL.prototype.shortenURL = function (url, igvxhr) {
 
             var endpoint = self.api + "?key=" + key;
 
-            return igv.igvxhr.loadJson(endpoint,
+            return igv.xhr.loadJson(endpoint,
                 {
                     sendData: JSON.stringify({"longUrl": url}),
                     contentType: "application/json"
@@ -62,7 +62,7 @@ GoogleURL.prototype.expandURL = function (url, igvxhr) {
 
                 endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
 
-                return igv.igvxhr.loadJson(endpoint, {contentType: "application/json"})
+                return igv.xhr.loadJson(endpoint, {contentType: "application/json"})
                     .then(function (json) {
                         return json.longUrl;
                     })
