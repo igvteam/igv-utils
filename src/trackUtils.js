@@ -66,9 +66,6 @@ const knownFileExtensions = new Set([
  */
 function getFormat(name) {
 
-    // if (igv.browser && igv.browser.formats && igv.browser.format[name]) {
-    //     return expandFormat(igv.browser.formats[name]);
-    // } else
     if (FileFormats && FileFormats[name]) {
         return expandFormat(FileFormats[name]);
     } else {
