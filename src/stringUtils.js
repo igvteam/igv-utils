@@ -1,3 +1,12 @@
+import Zlib from "./vendor/zlib_and_gzip.js";
+
+let _btoa;
+if(typeof btoa === 'undefined') {
+    _btoa = require('btoa');
+} else {
+    _btoa = btoa;
+}
+
 /**
  * Covers string literals and String objects
  * @param x
@@ -75,14 +84,17 @@ function hashCode(s) {
  * Compress string and encode in a url safe form
  * @param s
  */
-function compressString(str, Zlib) {
+function compressString(str, zlib) {
+
+    if(!zlib) zlib = Zlib;
+
     const bytes = [];
     for (var i = 0; i < str.length; i++) {
         bytes.push(str.charCodeAt(i));
     }
-    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    const compressedBytes = new zlib.RawDeflate(bytes).compress();            // UInt8Arry
     const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    let enc = btoa(compressedString);
+    let enc = _btoa(compressedString);
     return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
 }
 

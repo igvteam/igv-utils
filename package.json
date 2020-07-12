@@ -21,7 +21,8 @@
     "url": "https://github.com/igvteam/igv-utils/issues"
   },
   "homepage": "https://github.com/igvteam/utils#readme",
-  "devDependencies": {
-    "rollup": "^1.27.8"
+  "dependencies": {
+    "btoa": "^1.2.1",
+    "esm": "^3.2.25"
   }
 }
