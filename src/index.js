@@ -1,4 +1,3 @@
-import GtexUtils from "./gtexUtils.js";
 import IGVColor from "./igv-color.js";
 import IGVMath from "./igv-math.js";
 import * as Utils from './utils.js';
@@ -11,7 +10,6 @@ import * as URLShortener from './urlShortener/urlShortener.js';
 import Zlib from "./vendor/zlib_and_gzip.js";
 
 export {
-    GtexUtils,
     IGVColor,
     IGVMath,
     IGVUtils,
