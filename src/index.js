@@ -1,13 +1,18 @@
-import IGVColor from "./igv-color.js";
-import IGVMath from "./igv-math.js";
-import * as Utils from './utils.js';
+import * as Icon from './icons.js'
+import * as UIUtils from "./ui-utils.js"
+import * as DOMUtils from "./dom-utils.js"
+import * as Utils from './utils.js'
 import * as IGVUtils from './util/igvUtils.js'
-import * as StringUtils from './stringUtils.js';
-import * as TrackUtils from './trackUtils.js';
-import * as FileUtils from './fileUtils.js';
-import * as URIUtils from './util/uriUtils.js';
-import * as URLShortener from './urlShortener/urlShortener.js';
+import * as StringUtils from './stringUtils.js'
+import * as TrackUtils from './trackUtils.js'
+import * as FileUtils from './fileUtils.js'
+import * as URIUtils from './util/uriUtils.js'
+import * as URLShortener from './urlShortener/urlShortener.js'
 import Zlib from "./vendor/zlib_and_gzip.js";
+import IGVColor from "./igv-color.js"
+import IGVMath from "./igv-math.js"
+import makeDraggable from "./draggable.js"
+import { appleCrayonPalette, nucleotideColorComponents, nucleotideColors, PaletteColorTable } from './colorPalettes.js'
 
 export {
     IGVColor,
@@ -19,5 +24,13 @@ export {
     FileUtils,
     URIUtils,
     Utils,
-    Zlib
+    DOMUtils,
+    UIUtils,
+    Icon,
+    Zlib,
+    makeDraggable,
+    appleCrayonPalette,
+    nucleotideColorComponents,
+    nucleotideColors,
+    PaletteColorTable
 }
