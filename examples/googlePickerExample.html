@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Picker Example</title>
+
+    <!-- Google Platform JS -->
+    <script src="https://apis.google.com/js/platform.js"></script>
+
+</head>
+<body>
+
+<div>
+
+    <h1>Google Picker Example</h1>
+    <button id="google-picker" type="button">Google Picker</button>
+
+</div>
+
+<script type="module">
+
+    import * as GoogleAuth from '../src/google/googleAuth.js';
+    import * as GooglePicker from '../src/google/googleFilePicker.js';
+    import {GoogleUtils} from '../src/index.js';
+
+    import oauthConfig from './oauthConfig-private.js';
+
+    // Function wrapper to allow use of await
+    (async function () {
+
+        await GoogleAuth.init({
+            client_id: oauthConfig.client_id,
+            scope: 'https://www.googleapis.com/auth/userinfo.profile',
+            listener: updateSignInStatus
+        })
+
+        document.getElementById("google-picker").onclick = () => {
+            GooglePicker.createDropdownButtonPicker(true, handlePick);
+        }
+
+
+    })()
+
+    function updateSignInStatus(signInStatus) {
+        console.log(signInStatus);
+    }
+
+    function handlePick(responses) {
+
+        const picks = responses
+            .map(({name, url}) => {
+                return {
+                    filename: name,
+                    name,
+                    google_url: GoogleUtils.driveDownloadURL(url)
+                };
+            });
+
+        const url = picks[0].google_url;
+
+        downloadFile(url, logContents)
+    }
+
+    async function downloadFile(downloadUrl, callback) {
+        if (downloadUrl) {
+            //var accessToken = gapi.auth.getToken().access_token;
+            const accessToken = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', downloadUrl);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+            xhr.setRequestHeader('Range', 'bytes=1-25')
+            xhr.onload = function () {
+                callback(xhr.responseText);
+            };
+            xhr.onerror = function () {
+                callback(null);
+            };
+            xhr.send();
+        } else {
+            callback(null);
+        }
+    }
+
+    function logContents(txt) {
+        console.log(txt);
+    }
+
+
+</script>
+
+</body>
+
+</html>

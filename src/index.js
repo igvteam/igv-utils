@@ -8,6 +8,10 @@ import * as TrackUtils from './trackUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './util/uriUtils.js'
 import * as URLShortener from './urlShortener/urlShortener.js'
+import * as GoogleUtils from './google/googleUtils.js'
+import * as GoogleAuth from '../src/google/googleAuth.js'
+import * as GooglePicker from '../src/google/googleFilePicker.js';
+
 import Zlib from "./vendor/zlib_and_gzip.js";
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
@@ -32,5 +36,8 @@ export {
     appleCrayonPalette,
     nucleotideColorComponents,
     nucleotideColors,
-    PaletteColorTable
+    PaletteColorTable,
+    GoogleUtils,
+    GooglePicker,
+    GoogleAuth
 }

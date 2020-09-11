@@ -11,3 +11,4 @@
 *.iml
 /npm-debug.log
 /examples/css/.sass-cache/
+/examples/oauthConfig-private.js
