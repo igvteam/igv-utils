@@ -64,7 +64,10 @@ function splitStringRespectingQuotes(string, delim) {
 }
 
 function stripQuotes(str) {
-    if (str.startsWith("'") || str.startsWith('"')) {
+    if(str === undefined) {
+        return str;
+    }
+    if(str.startsWith("'") || str.startsWith('"')) {
         str = str.substring(1);
     }
     if (str.endsWith("'") || str.endsWith('"')) {
@@ -121,7 +124,11 @@ function uncompressString(enc, Zlib) {
     return str;
 }
 
+function capitalize(str) {
+    return str.length > 0 ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+}
+
 export {
     isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, stripQuotes,
-    hashCode, compressString, uncompressString
+    hashCode, compressString, uncompressString, capitalize
 };
