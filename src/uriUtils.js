@@ -1,4 +1,4 @@
-import Zlib from "../vendor/zlib_and_gzip.js";
+import Zlib from "./vendor/zlib_and_gzip.js";
 
 if (typeof process === 'object' && typeof window === 'undefined') {
     global.atob = function (str) {
@@ -66,5 +66,32 @@ const options = {
     }
 };
 
-export {parseUri, decodeDataURI};
+function addExtension(url, extension) {
+
+    const idx = url.indexOf("?");
+    if (idx < 0) {
+        return url + extension;
+    } else {
+        return url.substring(0, idx) + extension + url.substring(idx);
+    }
+}
+
+/**
+ * Resolve a url, which might be a string, function (that returns a string or Promse), or Promise (that resolves to a string)
+ *
+ * @param url
+ * @returns {Promise<*>}
+ */
+async function resolveURL(url) {
+    if (typeof url === 'function') {
+        url = url();
+    }
+    if (url instanceof Promise) {
+        url = await url;
+    }
+    return url;
+
+}
+
+export {parseUri, decodeDataURI, addExtension, resolveURL};
 
