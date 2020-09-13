@@ -51,11 +51,22 @@ function getFilename (path) {
         return filename;
 
     }
-
 }
 
 function isFilePath (path) {
     return (path instanceof File);
 }
 
-export {getExtension, getFilename, isFilePath}
+
+function download  (filename, data) {
+
+    const element = document.createElement('a');
+    element.setAttribute('href', data);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
+export {getExtension, getFilename, isFilePath, download}
