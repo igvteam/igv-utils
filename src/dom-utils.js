@@ -113,4 +113,5 @@ function translateMouseCoordinates(event, domElement) {
     return { x, y }
 }
 
-export { create, div, hide, show, offset, hideAll, empty, pageCoordinates, relativeDOMBBox, applyStyle, guid, translateMouseCoordinates }
+export { create, div, hide, show, offset, hideAll, empty, pageCoordinates, relativeDOMBBox,
+    applyStyle, guid, translateMouseCoordinates }

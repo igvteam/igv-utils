@@ -23,14 +23,12 @@
  * THE SOFTWARE.
  */
 
-let apiKey;
-
 // Crude test, this is conservative, nothing bad happens for a false positive
 function isGoogleURL(url) {
     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
         this.isGoogleCloudURL(url) ||
         this.isGoogleStorageURL(url) ||
-        this.isGoogleDrive(url)
+        this.isGoogleDriveURL(url)
 }
 
 function isGoogleStorageURL(url) {
@@ -43,12 +41,8 @@ function isGoogleCloudURL(url) {
     return url.startsWith("gs://")
 }
 
-function isGoogleDrive(url) {
+function isGoogleDriveURL(url) {
     return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
-}
-
-function setApiKey(key) {
-    apiKey = key;
 }
 
 function translateGoogleCloudURL(gsUrl) {
@@ -125,7 +119,7 @@ function getGoogleDriveFileID(link) {
 
 export {
     isGoogleURL, addApiKey, driveDownloadURL, getGoogleDriveFileID,
-    isGoogleCloudURL, isGoogleDrive, isGoogleStorageURL, setApiKey, translateGoogleCloudURL
+    isGoogleCloudURL, isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
 }
 
 
