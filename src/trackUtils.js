@@ -56,7 +56,8 @@ const knownFileExtensions = new Set([
     "bp",
     "snp",
     "rmsk",
-    "cram"
+    "cram",
+    "gwas"
 ]);
 
 /**
@@ -151,6 +152,9 @@ function inferTrackTypes(config) {
                 case "bp":
                     config.type = "arc"
                     break;
+                case "gwas":
+                    config.type = "gwas"
+                    break;
                 default:
                     config.type = "annotation";
 
@@ -233,7 +237,9 @@ function translateDeprecatedTypes(config) {
         config.type = config.type || config.featureType;
         config.featureType = undefined;
     }
-    if ("bed" === config.type) {
+    if ("junctions" === config.type) {
+        config.type = "spliceJunctions"
+    } else if ("bed" === config.type) {
         config.type = "annotation";
         config.format = config.format || "bed";
     } else if ("annotations" === config.type) {
@@ -256,28 +262,7 @@ function translateDeprecatedTypes(config) {
     }
 }
 
-/**
- * Parse a locus string and return a range object.  Locus string is of the form chr:start-end.  End is optional
- *
- */
-function parseLocusString(string) {
-
-    const t1 = string.split(":");
-    const t2 = t1[1].split("-");
-
-    const range = {
-        chr: t1[0],
-        start: Number.parseInt(t2[0].replace(/,/g, '')) - 1
-    };
-
-    if (t2.length > 1) {
-        range.end = Number.parseInt(t2[1].replace(/,/g, ''));
-    } else {
-        range.end = range.start + 1;
-    }
-
-    return range;
-}
 
 
-export {knownFileExtensions, getFormat, inferTrackTypes, inferFileFormat, inferIndexPath, parseLocusString};
+
+export {knownFileExtensions, getFormat, inferTrackTypes, inferFileFormat, inferIndexPath};

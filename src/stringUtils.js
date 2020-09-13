@@ -128,7 +128,31 @@ function capitalize(str) {
     return str.length > 0 ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
 
+
+/**
+ * Parse a locus string and return a range object.  Locus string is of the form chr:start-end.  End is optional
+ *
+ */
+function parseLocusString(string) {
+
+    const t1 = string.split(":");
+    const t2 = t1[1].split("-");
+
+    const range = {
+        chr: t1[0],
+        start: Number.parseInt(t2[0].replace(/,/g, '')) - 1
+    };
+
+    if (t2.length > 1) {
+        range.end = Number.parseInt(t2[1].replace(/,/g, ''));
+    } else {
+        range.end = range.start + 1;
+    }
+
+    return range;
+}
+
 export {
     isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, stripQuotes,
-    hashCode, compressString, uncompressString, capitalize
+    hashCode, compressString, uncompressString, capitalize, parseLocusString
 };

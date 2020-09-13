@@ -26,9 +26,9 @@
 // Crude test, this is conservative, nothing bad happens for a false positive
 function isGoogleURL(url) {
     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
-        this.isGoogleCloudURL(url) ||
-        this.isGoogleStorageURL(url) ||
-        this.isGoogleDriveURL(url)
+        isGoogleCloudURL(url) ||
+        isGoogleStorageURL(url) ||
+        isGoogleDriveURL(url)
 }
 
 function isGoogleStorageURL(url) {

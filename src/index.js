@@ -1,7 +1,6 @@
 import * as Icon from './icons.js'
 import * as UIUtils from "./ui-utils.js"
 import * as DOMUtils from "./dom-utils.js"
-import * as Utils from './utils.js'
 import * as StringUtils from './stringUtils.js'
 import * as TrackUtils from './trackUtils.js'
 import * as FileUtils from './fileUtils.js'
@@ -24,7 +23,6 @@ export {
     URLShortener,
     FileUtils,
     URIUtils,
-    Utils,
     DOMUtils,
     UIUtils,
     Icon,
