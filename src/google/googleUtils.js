@@ -26,19 +26,15 @@
 // Crude test, this is conservative, nothing bad happens for a false positive
 function isGoogleURL(url) {
     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
-        isGoogleCloudURL(url) ||
         isGoogleStorageURL(url) ||
         isGoogleDriveURL(url)
 }
 
 function isGoogleStorageURL(url) {
-    return url.startsWith("https://www.googleapis.com/storage") ||
+    return url.startsWith("gs://") ||
+        url.startsWith("https://www.googleapis.com/storage") ||
         url.startsWith("https://storage.cloud.google.com") ||
         url.startsWith("https://storage.googleapis.com");
-}
-
-function isGoogleCloudURL(url) {
-    return url.startsWith("gs://")
 }
 
 function isGoogleDriveURL(url) {
@@ -119,7 +115,7 @@ function getGoogleDriveFileID(link) {
 
 export {
     isGoogleURL, addApiKey, driveDownloadURL, getGoogleDriveFileID,
-    isGoogleCloudURL, isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
+    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
 }
 
 

@@ -29,8 +29,8 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         await init();
     }
 
-    const accessToken = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
-    if (accessToken) {
+    const {access_token} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+    if (access_token) {
 
         const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
         view.setIncludeFolders(true);
@@ -43,7 +43,7 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         if (multipleFileSelection) {
              picker = new google.picker.PickerBuilder()
                 .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-                .setOAuthToken(accessToken)
+                .setOAuthToken(access_token)
                 .addView(view)
                 .addView(teamView)
                 .enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES)

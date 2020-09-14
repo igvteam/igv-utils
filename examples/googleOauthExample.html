@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Picker Example</title>
+
+    <!-- Google Platform JS -->
+    <script src="https://apis.google.com/js/platform.js"></script>
+
+</head>
+<body>
+
+<div>
+    <h1>Google Oauth Example</h1>
+</div>
+
+<script type="module">
+
+    import * as GoogleAuth from '../src/google/googleAuth.js';
+
+    import oauthConfig from './oauthConfig.js';
+
+    // Function wrapper to allow use of await
+    (async function () {
+
+        await GoogleAuth.init({
+            client_id: oauthConfig.client_id,
+            scope: 'https://www.googleapis.com/auth/userinfo.profile'
+        })
+
+        const {access_token, expires_at} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/userinfo.profile');
+        alert(access_token);
+        alert(expires_at);
+
+    })()
+
+</script>
+
+</body>
+
+</html>

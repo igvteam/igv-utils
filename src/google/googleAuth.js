@@ -1,3 +1,5 @@
+import {isGoogleDriveURL, isGoogleStorageURL} from "./googleUtils.js"
+
 const FIVE_MINUTES = 5 * 60 * 1000;
 
 async function load() {
@@ -23,26 +25,20 @@ async function getAccessToken(scope) {
 
     let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
     if (currentUser.isSignedIn()) {
-        if (currentUser.hasGrantedScopes(scope)) {
-            const {access_token, expires_at} = currentUser.getAuthResponse();
-            if ((Date.now() - FIVE_MINUTES) < expires_at) {
-                return access_token;
-            } else {
-                // reloadAuthResponse should work but doesn't reliably.  Force another sign-in as a workaround
-                // const reloadResponse = await currentUser.reloadAuthResponse();
-                // return reloadResponse.access_token;
-                currentUser = await signIn(scope);
-                const {access_token} = currentUser.getAuthResponse();
-                return access_token;
-            }
+        if (!currentUser.hasGrantedScopes(scope)) {
+            await currentUser.grant({scope})
+        }
+        const {access_token, expires_at} = currentUser.getAuthResponse();
+        if (Date.now()  < (expires_at - FIVE_MINUTES)) {
+            return {access_token, expires_at};
         } else {
-            const {access_token} = currentUser.grant({scope});
-            return access_token;
+            const {access_token, expires_at} = currentUser.reloadAuthResponse();
+            return {access_token, expires_at};
         }
     } else {
         currentUser = await signIn(scope);
-        const {access_token} = currentUser.getAuthResponse();
-        return access_token;
+        const {access_token, expires_at} = currentUser.getAuthResponse();
+        return {access_token, expires_at};
     }
 }
 
@@ -54,6 +50,16 @@ async function signIn(scope) {
     return gapi.auth2.getAuthInstance().signIn(options)
 }
 
+function getScopeForURL(url) {
+    if (isGoogleDriveURL(url)) {
+        return "https://www.googleapis.com/auth/drive.readonly";
+    } else if (isGoogleStorageURL(url)) {
+        return "https://www.googleapis.com/auth/devstorage.read_only";
+    } else {
+        return 'https://www.googleapis.com/auth/userinfo.profile';
+    }
+}
 
-export {init, getAccessToken}
+
+export {init, getAccessToken, getScopeForURL}
 
