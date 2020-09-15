@@ -5,7 +5,7 @@
     <title>Google Picker Example</title>
 
     <!-- Google Platform JS -->
-    <script src="https://apis.google.com/js/platform.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
 
 </head>
 <body>
@@ -19,20 +19,14 @@
 
 <script type="module">
 
-    import * as GoogleAuth from '../src/google/googleAuth.js';
-    import * as GooglePicker from '../src/google/googleFilePicker.js';
-    import {GoogleUtils} from '../src/index.js';
+    import {GoogleAuth, GooglePicker, GoogleUtils} from '../src/index.js';
 
     import oauthConfig from './oauthConfig.js';
 
     // Function wrapper to allow use of await
     (async function () {
 
-        await GoogleAuth.init({
-            client_id: oauthConfig.client_id,
-            scope: 'https://www.googleapis.com/auth/userinfo.profile',
-            listener: updateSignInStatus
-        })
+        await GoogleAuth.init(oauthConfig);
 
         document.getElementById("google-picker").onclick = () => {
             GooglePicker.createDropdownButtonPicker(true, handlePick);
@@ -45,29 +39,28 @@
         console.log(signInStatus);
     }
 
-    function handlePick(responses) {
+    async function handlePick(responses) {
 
-        const picks = responses
-            .map(({name, url}) => {
-                return {
-                    filename: name,
-                    name,
-                    google_url: GoogleUtils.driveDownloadURL(url)
-                };
-            });
+        const url = responses[0].url;
+        console.log(responses[0])
 
-        const url = picks[0].google_url;
+        const downloadURL = GoogleUtils.driveDownloadURL(url);
+        const driveInfo = await GoogleUtils.getDriveFileInfo(url);
+        console.log(driveInfo);
 
-        downloadFile(url, logContents)
+        downloadFile(downloadURL, logContents)
+
     }
 
     async function downloadFile(downloadUrl, callback) {
         if (downloadUrl) {
             //var accessToken = gapi.auth.getToken().access_token;
-            const accessToken = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+            //const {accessToken} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
             var xhr = new XMLHttpRequest();
+
+            //xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+            downloadUrl += "&key=" + oauthConfig.apiKey;
             xhr.open('GET', downloadUrl);
-            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
             xhr.setRequestHeader('Range', 'bytes=1-25')
             xhr.onload = function () {
                 callback(xhr.responseText);

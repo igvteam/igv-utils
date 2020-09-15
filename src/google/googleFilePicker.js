@@ -29,7 +29,7 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         await init();
     }
 
-    const {access_token} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+    const {access_token} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.file')
     if (access_token) {
 
         const view = new google.picker.DocsView(google.picker.ViewId.DOCS);

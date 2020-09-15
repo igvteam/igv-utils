@@ -1,29 +1,5 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014-2015 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
+import {getAccessToken, getApiKey} from "./googleAuth.js";
 
-// Crude test, this is conservative, nothing bad happens for a false positive
 function isGoogleURL(url) {
     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
         isGoogleStorageURL(url) ||
@@ -67,15 +43,6 @@ function translateGoogleCloudURL(gsUrl) {
 
 }
 
-function addApiKey(url) {
-    if (apiKey !== undefined && !url.includes("key=")) {
-        const paramSeparator = url.includes("?") ? "&" : "?"
-        url = url + paramSeparator + "key=" + apiKey;
-    }
-    return url;
-}
-
-
 function driveDownloadURL(link) {
     // Return a google drive download url for the sharable link
     //https://drive.google.com/open?id=0B-lleX9c2pZFbDJ4VVRxakJzVGM
@@ -113,9 +80,38 @@ function getGoogleDriveFileID(link) {
     }
 }
 
+async function getDriveFileInfo(googleDriveURL) {
+
+    const id = getGoogleDriveFileID(googleDriveURL);
+    const apiKey = getApiKey();
+    //const accessToken = getAccessToken("https://www.googleapis.com/auth/drive.readonly");
+    //if(accessToken) {
+    const endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true&key=" + apiKey;
+    const response = await fetch(endPoint);
+    let json = await response.json();
+    if (json.error && json.error.code === 404) {
+        const {access_token} = await getAccessToken("https://www.googleapis.com/auth/drive.readonly");
+        if (access_token) {
+            const response = await fetch(endPoint, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            json = await response.json();
+            if(json.error) {
+                throw Error(json.error);
+            }
+        } else {
+            throw Error(json.error);
+        }
+    }
+    return json;
+    // }
+}
+
 export {
-    isGoogleURL, addApiKey, driveDownloadURL, getGoogleDriveFileID,
-    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
+    isGoogleURL, driveDownloadURL, getGoogleDriveFileID,
+    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL, getDriveFileInfo
 }
 
 
