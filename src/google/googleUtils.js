@@ -1,4 +1,3 @@
-import {getAccessToken, getApiKey} from "./googleAuth.js";
 
 function isGoogleURL(url) {
     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
