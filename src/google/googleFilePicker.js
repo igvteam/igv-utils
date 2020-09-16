@@ -6,6 +6,9 @@
  * PREQUISITES
  *    gapi loaded
  *    oauth2 loaded and initialized
+ *
+ * This wrapper is stateless -- this is important as multiple copies of igv-utils might be present
+ * in an application.  All state is held in the gapi library itself.
  */
 
 import * as GoogleAuth from './googleAuth.js'

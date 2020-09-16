@@ -1,3 +1,7 @@
+// Convenience functions for the gapi oAuth library.
+// This wrapper is stateless -- this is important as multiple copies of igv-utils might be present
+// in an application.  All state is held in the gapi library itself.
+
 import {isGoogleDriveURL, isGoogleStorageURL} from "./googleUtils.js"
 
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -15,6 +19,11 @@ async function load(library) {
 
 async function init(config) {
 
+    if(isInitialized()) {
+        console.warn("oAuth has already been initialized");
+        return;
+    }
+
     apiKey = config.apiKey;
 
     // copy config, gapi will modify it
@@ -22,11 +31,18 @@ async function init(config) {
     if(!configCopy.scope) {
         configCopy.scope = 'profile'
     }
+    if(!config.client_id) {
+        config.client_id = config.clientId;
+    }
 
     await load("auth2");
     return new Promise(function (resolve, reject) {
         gapi.auth2.init(configCopy).then(resolve, reject)
     })
+}
+
+function isInitialized() {
+    return gapi.auth2 && gapi.auth2.getAuthInstance();
 }
 
 async function getAccessToken(scope) {
@@ -81,5 +97,5 @@ function getApiKey() {
 }
 
 
-export {init, getAccessToken, getScopeForURL, getApiKey}
+export {init, getAccessToken, getScopeForURL, getApiKey, isInitialized}
 
