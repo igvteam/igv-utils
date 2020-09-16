@@ -51,14 +51,6 @@ function driveDownloadURL(link) {
     return id ? "https://www.googleapis.com/drive/v3/files/" + id + "?alt=media&supportsTeamDrives=true" : link;
 }
 
-
-// getDriveFileInfo: function (googleDriveURL) {
-//     const id = getGoogleDriveFileID(googleDriveURL);
-//     const endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true";
-//     return igvxhr.loadJson(endPoint, buildOptions({}));
-// }
-
-
 function getGoogleDriveFileID(link) {
 
     //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
@@ -80,38 +72,9 @@ function getGoogleDriveFileID(link) {
     }
 }
 
-async function getDriveFileInfo(googleDriveURL) {
-
-    const id = getGoogleDriveFileID(googleDriveURL);
-    const apiKey = getApiKey();
-    //const accessToken = getAccessToken("https://www.googleapis.com/auth/drive.readonly");
-    //if(accessToken) {
-    const endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true&key=" + apiKey;
-    const response = await fetch(endPoint);
-    let json = await response.json();
-    if (json.error && json.error.code === 404) {
-        const {access_token} = await getAccessToken("https://www.googleapis.com/auth/drive.readonly");
-        if (access_token) {
-            const response = await fetch(endPoint, {
-                headers: {
-                    'Authorization': `Bearer ${access_token}`
-                }
-            })
-            json = await response.json();
-            if(json.error) {
-                throw Error(json.error);
-            }
-        } else {
-            throw Error(json.error);
-        }
-    }
-    return json;
-    // }
-}
-
 export {
     isGoogleURL, driveDownloadURL, getGoogleDriveFileID,
-    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL, getDriveFileInfo
+    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
 }
 
 
