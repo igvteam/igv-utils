@@ -31,6 +31,14 @@ async function init(config) {
 
 async function getAccessToken(scope) {
 
+    if(typeof gapi === "undefined") {
+        throw Error("Google authentication requires the 'gapi' library")
+    }
+    if(!gapi.auth2) {
+        throw Error("Google 'auth2' has not been initialized")
+    }
+
+
     let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
     if (currentUser.isSignedIn()) {
         if (!currentUser.hasGrantedScopes(scope)) {

@@ -10,22 +10,23 @@
 
 import * as GoogleAuth from './googleAuth.js'
 
-let pickerAPILoaded = false;
-
 async function init() {
     return new Promise(function (resolve, reject) {
         gapi.load("picker", {
-            callback: function(result) {
-                pickerAPILoaded = true;
-                resolve(result);
-            },
-            onerror: reject});
+            callback: resolve,
+            onerror: reject
+        });
     })
 }
 
 async function createDropdownButtonPicker(multipleFileSelection, filePickerHandler) {
 
-    if(!pickerAPILoaded) {
+
+    if(typeof gapi === "undefined") {
+        throw Error("Google authentication requires the 'gapi' library")
+    }
+
+    if(typeof google === "undefined" || !google.picker) {
         await init();
     }
 
@@ -76,30 +77,6 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         throw Error("Sign into Google before using picker");
     }
 }
-
-
-function pickerCallback(data) {
-
-    let doc,
-        obj,
-        documents;
-
-    documents = data[google.picker.Response.DOCUMENTS];
-
-    doc = documents[0];
-
-    obj =
-        {
-            name: doc[google.picker.Document.NAME],
-            path: 'https://www.googleapis.com/drive/v3/files/' + doc[google.picker.Document.ID] + '?alt=media'
-        };
-
-    return obj;
-};
-
-function updateSignInStatus(signInStatus) {
-    // do nothing
-};
 
 
 export {init, createDropdownButtonPicker};
