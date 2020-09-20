@@ -2,11 +2,12 @@
   "name": "igv-utils",
   "version": "1.0.1",
   "description": "Misc code shared by igvteam projects",
+  "module": "src/index.js",
   "files": [
     "src/**"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -u tdd -r esm"
   },
   "repository": {
     "type": "git",
@@ -21,8 +22,12 @@
     "url": "https://github.com/igvteam/igv-utils/issues"
   },
   "homepage": "https://github.com/igvteam/utils#readme",
-  "dependencies": {
+  "devDependencies": {
     "btoa": "^1.2.1",
-    "esm": "^3.2.25"
+    "esm": "^3.2.25",
+    "@igvteam/test-utils": "github:igvteam/test-utils#47d134fd",
+    "w3c-xmlhttprequest": "^3.0.0",
+    "chai": "^4.2.0",
+    "mocha": "^8.1.3"
   }
 }
