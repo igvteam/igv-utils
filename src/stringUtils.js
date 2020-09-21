@@ -87,15 +87,13 @@ function hashCode(s) {
  * Compress string and encode in a url safe form
  * @param s
  */
-function compressString(str, zlib) {
-
-    if(!zlib) zlib = Zlib;
+function compressString(str) {
 
     const bytes = [];
     for (var i = 0; i < str.length; i++) {
         bytes.push(str.charCodeAt(i));
     }
-    const compressedBytes = new zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
     const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
     let enc = _btoa(compressedString);
     return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
@@ -107,7 +105,8 @@ function compressString(str, zlib) {
  * @param enc
  * @returns {string}
  */
-function uncompressString(enc, Zlib) {
+function uncompressString(enc) {
+
     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
 
     const compressedString = atob(enc);
