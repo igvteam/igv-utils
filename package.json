@@ -1,6 +1,6 @@
 {
   "name": "igv-utils",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Misc code shared by igvteam projects",
   "module": "src/index.js",
   "files": [
