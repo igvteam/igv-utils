@@ -9,7 +9,7 @@ import * as URLShortener from './urlShortener/urlShortener.js'
 import * as GoogleUtils from './google/googleUtils.js'
 import * as GoogleAuth from '../src/google/googleAuth.js'
 import * as GooglePicker from '../src/google/googleFilePicker.js';
-import * as GoogleDrive from '../src/google/googleDrive';
+import * as GoogleDrive from '../src/google/googleDrive.js';
 import Zlib from "./vendor/zlib_and_gzip.js";
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
