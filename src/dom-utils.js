@@ -96,7 +96,7 @@ let getMouseXY = (domElement, { clientX, clientY }) => {
 
     const x = clientX - left;
     const y = clientY - top;
-    return { x, y, xNormalized: x/width, yNormalized: y/height };
+    return { x, y, xNormalized: x/width, yNormalized: y/height, width, height };
 
 };
 
@@ -109,8 +109,8 @@ let getMouseXY = (domElement, { clientX, clientY }) => {
 function translateMouseCoordinates(event, domElement) {
 
     const { clientX, clientY } = event;
-    const { x, y } = getMouseXY(domElement, { clientX, clientY });
-    return { x, y }
+    return getMouseXY(domElement, { clientX, clientY });
+
 }
 
 export { create, div, hide, show, offset, hideAll, empty, pageCoordinates, relativeDOMBBox,
