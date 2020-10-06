@@ -6,8 +6,6 @@ import {isGoogleDriveURL, isGoogleStorageURL} from "./googleUtils.js"
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 
-let apiKey;
-
 async function load(library) {
     return new Promise(function (resolve, reject) {
         gapi.load(library, {
@@ -24,7 +22,7 @@ async function init(config) {
         return;
     }
 
-    apiKey = config.apiKey;
+    gapi.apiKey = config.apiKey;
 
     // copy config, gapi will modify it
     const configCopy = Object.assign({}, config);
@@ -93,7 +91,7 @@ function getScopeForURL(url) {
 }
 
 function getApiKey() {
-    return apiKey;
+    return gapi.apiKey;
 }
 
 

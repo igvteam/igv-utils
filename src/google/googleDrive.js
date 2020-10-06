@@ -4,9 +4,11 @@ import {getGoogleDriveFileID} from "./googleUtils.js"
 async function getDriveFileInfo(googleDriveURL) {
 
     const id = getGoogleDriveFileID(googleDriveURL);
+    let endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true";
     const apiKey = getApiKey();
-
-    const endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true&key=" + apiKey;
+    if (apiKey) {
+        endPoint += "&key=" + apiKey;
+    }
     const response = await fetch(endPoint);
     let json = await response.json();
     if (json.error && json.error.code === 404) {
@@ -18,7 +20,7 @@ async function getDriveFileInfo(googleDriveURL) {
                 }
             })
             json = await response.json();
-            if(json.error) {
+            if (json.error) {
                 throw Error(json.error);
             }
         } else {
