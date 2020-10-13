@@ -1,4 +1,4 @@
-import {URIUtils, StringUtils, TrackUtils} from "../src/index.js"
+import {URIUtils} from "../src/index.js"
 import {assert} from 'chai';
 
 suite("testUriUtils", function () {
@@ -25,6 +25,30 @@ suite("testUriUtils", function () {
         const session = "data:application/gzip;base64,H4sIAAbNClwC/w3Hx5KiQAAA0F/Z8spWMWiDMlt7gBaVHCTfmtzkgSbo1Pz77ru978OUF/mU92l++Pz1fSjQTJDnaP9zyBBBn2gcW5wigoeeLt94/JOgOefA7weYZUFIDNhukD4zTzM4X3XxOl/AcLGbJFUsEcOeLS0MN+/+9aA/smPcNGMWQamC+2uJd41ecPHm1wkc1/lN36k1OCV0wcEWG5RrViKREo6hlnmy0TAGUQDcUSDn6sq/G0uU2ODEh3u1uTS3aCcVlukgJrYQqSQetG1UpizAvnX/6urT7Wrns1NrpJMm3ryEmqzfZBbm5l1NGiojprBFk1EitJAqym03atrjwu2KjFpfkmZx7PbgbTh67giLsmGPudn9DFaPEWAjHut0iXp2hhi9CGllRt2tm4YNxglQ7O8M10+ZCtTJ3GmMwqxYPO/RlVjb3C7zta7K9a/bjsJYbuPUYPdwKlu+1ja2q+2zo6n3RlEweQFv9fXKcuJx3J7bs2vb+pWubs5TelQMH3V4YsBC0QX0awas4CoIwt/Dz88/fLgIFuABAAA=";
         str = URIUtils.decodeDataURI(session)
         assert.ok(str)
+    })
+
+    test("Resolve URL", async function () {
+
+        const expected = "theURL";
+
+        const t1 = await URIUtils.resolveURL(expected);
+        assert.equal(t1, expected);
+
+        const fn = function () { return expected};
+        const t2 = await URIUtils.resolveURL(fn);
+        assert.equal(t2, expected);
+
+        const p = Promise.resolve(expected);
+        const t3 = await URIUtils.resolveURL(p);
+        assert.equal(t3, expected);
+
+        const fn2 = function () {return p;}
+        const t4 = await URIUtils.resolveURL(fn2);
+        assert.equal(t4, expected);
+
+        const arrow = () => expected;
+        const t5 = await URIUtils.resolveURL(arrow);
+        assert.equal(t5, expected);
     })
 
 })
