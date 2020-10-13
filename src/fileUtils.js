@@ -1,4 +1,4 @@
-
+import {isString} from "./stringUtils.js";
 
 function getExtension(url) {
 
@@ -30,26 +30,26 @@ function getExtension(url) {
 /**
  * Return the filename from the path.   Example
  *   https://foo.com/bar.bed?param=2   => bar.bed
- * @param path
+ * @param urlOrFile
  */
 
-function getFilename (path) {
+function getFilename (urlOrFile) {
 
-    if (path.google_url || path instanceof File) {
-        return path.name;
-    } else {
+    if (urlOrFile instanceof File) {
+        return urlOrFile.name;
+    } else if (isString(urlOrFile)){
 
-        let index = path.lastIndexOf("/");
-        let filename = index < 0 ? path : path.substr(index + 1);
+        let index = urlOrFile.lastIndexOf("/");
+        let filename = index < 0 ? urlOrFile : urlOrFile.substr(index + 1);
 
         //Strip parameters -- handle local files later
         index = filename.indexOf("?");
         if (index > 0) {
             filename = filename.substr(0, index);
         }
-
         return filename;
-
+    } else {
+        throw Error(`Expected File or string, got ${typeof urlOrFile}`);
     }
 }
 

@@ -83,14 +83,7 @@ function addExtension(url, extension) {
  * @returns {Promise<*>}
  */
 async function resolveURL(url) {
-    if (typeof url === 'function') {
-        url = url();
-    }
-    if (url instanceof Promise) {
-        url = await url;
-    }
-    return url;
-
+    return (typeof url === 'function')  ?  url() :  url;
 }
 
 export {parseUri, decodeDataURI, addExtension, resolveURL};
