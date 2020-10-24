@@ -1,4 +1,7 @@
 import {isString} from "./stringUtils.js";
+import { isGoogleDriveURL } from "./google/googleUtils.js";
+import { getDriveFileInfo } from "./google/googleDrive.js";
+import { parseUri } from "./uriUtils.js";
 
 function getExtension(url) {
 
@@ -53,6 +56,20 @@ function getFilename (urlOrFile) {
     }
 }
 
+const getFilenameExtended = async path => {
+
+    if (path instanceof File) {
+        return path.name
+    } else if (isGoogleDriveURL(path)) {
+        const info = await getDriveFileInfo(path)
+        return info.name || info.originalFileName
+    } else {
+        const result = parseUri(path)
+        return result.file;
+    }
+
+}
+
 function isFilePath (path) {
     return (path instanceof File);
 }
@@ -69,4 +86,4 @@ function download  (filename, data) {
     document.body.removeChild(element);
 }
 
-export {getExtension, getFilename, isFilePath, download}
+export {getExtension, getFilename, getFilenameExtended, isFilePath, download}
