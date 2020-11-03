@@ -56,7 +56,7 @@ function getFilename (urlOrFile) {
     }
 }
 
-const getFilenameExtended = async path => {
+async function getFilenameExtended (path) {
 
     if (path instanceof File) {
         return path.name
