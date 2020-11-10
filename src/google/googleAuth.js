@@ -17,7 +17,7 @@ async function load(library) {
 
 async function init(config) {
 
-    if(isInitialized()) {
+    if (isInitialized()) {
         console.warn("oAuth has already been initialized");
         return;
     }
@@ -26,10 +26,10 @@ async function init(config) {
 
     // copy config, gapi will modify it
     const configCopy = Object.assign({}, config);
-    if(!configCopy.scope) {
+    if (!configCopy.scope) {
         configCopy.scope = 'profile'
     }
-    if(!config.client_id) {
+    if (!config.client_id) {
         config.client_id = config.clientId;
     }
 
@@ -45,10 +45,10 @@ function isInitialized() {
 
 async function getAccessToken(scope) {
 
-    if(typeof gapi === "undefined") {
+    if (typeof gapi === "undefined") {
         throw Error("Google authentication requires the 'gapi' library")
     }
-    if(!gapi.auth2) {
+    if (!gapi.auth2) {
         throw Error("Google 'auth2' has not been initialized")
     }
 
@@ -80,6 +80,10 @@ async function signIn(scope) {
     return gapi.auth2.getAuthInstance().signIn(options)
 }
 
+async function signOut() {
+    return gapi.auth2.getAuthInstance().signOut();
+}
+
 function getScopeForURL(url) {
     if (isGoogleDriveURL(url)) {
         return "https://www.googleapis.com/auth/drive.file";
@@ -95,5 +99,5 @@ function getApiKey() {
 }
 
 
-export {init, getAccessToken, getScopeForURL, getApiKey, isInitialized}
+export {init, getAccessToken, getScopeForURL, getApiKey, isInitialized, signIn, signOut}
 
