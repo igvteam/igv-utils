@@ -40,8 +40,10 @@ async function init(config) {
 }
 
 function isInitialized() {
-    return gapi.auth2 && gapi.auth2.getAuthInstance();
+    return typeof gapi !== "undefined" && gapi.auth2 && gapi.auth2.getAuthInstance();
 }
+
+let inProgress = false;
 
 async function getAccessToken(scope) {
 
@@ -52,24 +54,67 @@ async function getAccessToken(scope) {
         throw Error("Google 'auth2' has not been initialized")
     }
 
+    if (inProgress) {
+        return new Promise(function (resolve, reject) {
+            let intervalID;
+            const checkForToken = () => {    // Wait for inProgress to equal "false"
+                try {
+                    if (inProgress === false) {
+                        //console.log("Delayed resolution for " + scope);
+                        resolve(getAccessToken(scope));
+                        clearInterval(intervalID);
+                    }
+                } catch (e) {
+                    clearInterval(intervalID);
+                    reject(e);
+                }
+            }
+            intervalID = setInterval(checkForToken, 100);
+        })
+    } else {
+        inProgress = true;
+        try {
+            let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
+            let token;
+            if (currentUser.isSignedIn()) {
+                if (!currentUser.hasGrantedScopes(scope)) {
+                    await currentUser.grant({scope})
+                }
+                const {access_token, expires_at} = currentUser.getAuthResponse();
+                if (Date.now() < (expires_at - FIVE_MINUTES)) {
+                    token = {access_token, expires_at};
+                } else {
+                    const {access_token, expires_at} = currentUser.reloadAuthResponse();
+                    token = {access_token, expires_at};
+                }
+            } else {
+                currentUser = await signIn(scope);
+                const {access_token, expires_at} = currentUser.getAuthResponse();
+                token = {access_token, expires_at};
+            }
+            return token;
+        } finally {
+            inProgress = false;
+        }
+    }
+}
+
+/**
+ * Return the current access token if the user is signed in, or undefined otherwise.  This function does not
+ * attempt a signIn or request any specfic scopes.
+ *
+ * @returns access_token || undefined
+ */
+function getCurrentAccessToken() {
 
     let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
-    if (currentUser.isSignedIn()) {
-        if (!currentUser.hasGrantedScopes(scope)) {
-            await currentUser.grant({scope})
-        }
-        const {access_token, expires_at} = currentUser.getAuthResponse();
-        if (Date.now() < (expires_at - FIVE_MINUTES)) {
-            return {access_token, expires_at};
-        } else {
-            const {access_token, expires_at} = currentUser.reloadAuthResponse();
-            return {access_token, expires_at};
-        }
-    } else {
-        currentUser = await signIn(scope);
+    if (currentUser && currentUser.isSignedIn()) {
         const {access_token, expires_at} = currentUser.getAuthResponse();
         return {access_token, expires_at};
+    } else {
+        return undefined;
     }
+
 }
 
 async function signIn(scope) {
@@ -99,5 +144,5 @@ function getApiKey() {
 }
 
 
-export {init, getAccessToken, getScopeForURL, getApiKey, isInitialized, signIn, signOut}
+export {init, getAccessToken, getCurrentAccessToken, getScopeForURL, getApiKey, isInitialized, signIn, signOut}
 
