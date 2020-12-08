@@ -1,7 +1,6 @@
-import {FileUtils} from "../src/index.js"
-
+import "./utils/mockObjects.js"
 import {assert} from 'chai';
-import {createMockObjects} from "@igvteam/test-utils/src"
+import {FileUtils} from "../src/index.js"
 
 suite("file utils", function () {
 

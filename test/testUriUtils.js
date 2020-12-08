@@ -1,5 +1,6 @@
-import {URIUtils} from "../src/index.js"
+import "./utils/mockObjects.js"
 import {assert} from 'chai';
+import {URIUtils} from "../src/index.js"
 
 suite("testUriUtils", function () {
 

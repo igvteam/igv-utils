@@ -242,6 +242,33 @@ const IGVColor = {
         }
     },
 
+    rgbComponents: function (color) {
+
+        if(color === "0" || color === ".") {
+            return [0,0,0];
+        }
+        const isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
+        if (isHex) {
+            color = IGVColor.hexToRgb(color);
+        } else {
+            if(!color.startsWith("rgb")) {
+                const hex = this.colorNameToHex(color);
+                color = this.hexToRgb(hex);
+            }
+        }
+
+        if (color.startsWith("rgb(")) {
+            return color.substring(4, color.length-1).split(",").map(s => Number.parseInt(s.trim()));
+         } else if (color.startsWith("rgba(")) {
+            return color.substring(5, color.length-1).split(",").map((s, i) => {
+                s = s.trim();
+                return i === 3 ? Number.parseFloat(s) : Number.parseInt(s)
+            });
+        }
+        else {
+            throw Error("Unrecognized color string: color");
+        }
+    },
 
     /**
      *
