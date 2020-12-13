@@ -9,33 +9,31 @@ import BitlyURL from "./bitlyURL.js";
 
 let urlShortenerList = [];
 
-const isURLShortenerSet = () => {
+function isURLShortenerSet  ()  {
     return urlShortenerList.length > 0;
-};
+}
 
-const setURLShortenerList = config => {
-
+function setURLShortenerList (config) {
     for (let c of config) {
         urlShortenerList.push(getShortener(c));
     }
+}
 
-};
-
-const getShortURL = async url =>  {
+async function getShortURL (url)  {
     return urlShortenerList.length > 0 ? await urlShortenerList[0].shortenURL(url) : url;
-};
+}
 
-const getShortener = shortener => {
+function getShortener(config) {
 
-    const { provider } = shortener;
+    const { provider } = config;
     if (provider) {
         if (provider === "tinyURL") {
-            return new TinyURL(shortener);
+            return new TinyURL(config);
         }
         if (provider === "google") {
-            return new GoogleURL(shortener);
+            return new GoogleURL(config);
         } else if (provider === "bitly") {
-            return new BitlyURL(shortener);
+            return new BitlyURL(config);
         } else {
             alert(`Unknown url shortener provider: ${ provider}`);
         }
@@ -47,6 +45,6 @@ const getShortener = shortener => {
             alert("URL shortener object must define functions 'shortenURL'");
         }
     }
-};
+}
 
-export { isURLShortenerSet, setURLShortenerList, getShortURL }
+export { isURLShortenerSet, setURLShortenerList, getShortURL, getShortener }
