@@ -61,6 +61,9 @@ async function getFilenameExtended (path) {
     if (path instanceof File) {
         return path.name
     } else if (isGoogleDriveURL(path)) {
+        if(typeof gapi === "undefined") {
+            throw Error(`Google initialization with API key is required to load Google urls (${path})`)
+        }
         const info = await getDriveFileInfo(path)
         return info.name || info.originalFileName
     } else {
