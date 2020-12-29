@@ -1,5 +1,5 @@
 import "./utils/mockObjects.js"
-import oauth from "../js/oauth.js";
+import oauth from "../src/oauth.js";
 import {assert} from 'chai';
 
 /**

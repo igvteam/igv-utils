@@ -4,8 +4,6 @@ import {FileUtils} from "../src/index.js"
 
 suite("file utils", function () {
 
-    createMockObjects();
-
     test("getFilename", function () {
 
         const expected = "foo.bar";
