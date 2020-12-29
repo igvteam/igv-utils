@@ -1,7 +1,7 @@
 import {isString} from "./stringUtils.js";
-import { isGoogleDriveURL } from "./google/googleUtils.js";
-import { getDriveFileInfo } from "./google/googleDrive.js";
-import { parseUri } from "./uriUtils.js";
+import {isGoogleDriveURL} from "./google/googleUtils.js";
+import {getDriveFileInfo} from "./google/googleDrive.js";
+import {parseUri} from "./uriUtils.js";
 
 function getExtension(url) {
 
