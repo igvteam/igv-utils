@@ -61,7 +61,7 @@ function unbgzf(data, lim) {
 
 function bgzBlockSize(data) {
     const ba = new Uint8Array(data);
-    const bsize = (ba[17] << 8) | (ba[16]) + 1;
+    const bsize = (ba[17] << 8 | ba[16]) + 1;
     return bsize;
 }
 
