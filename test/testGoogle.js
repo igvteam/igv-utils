@@ -98,5 +98,13 @@ suite("testGoogle", async function () {
         assert.equal(url, "https://storage.googleapis.com/storage/v1/b/genomics-public-data/o/platinum-genomes%2Fbam%2FNA12877_S1.bam?alt=media");
     })
 
+    test("google storage 8", function () {
+        let gsURL = "https://storage.googleapis.com/amoebidium_browser/Aparasiticum_pilon2nd.fasta.fai";
+        let bo = GoogleUtils.parseBucketName(gsURL);
+        assert.equal("amoebidium_browser", bo.bucket);
+        assert.equal("Aparasiticum_pilon2nd.fasta.fai", bo.object);
+    })
+
+
 })
 

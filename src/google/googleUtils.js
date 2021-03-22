@@ -43,45 +43,45 @@ function translateGoogleCloudURL(gsUrl) {
  *
  * @param url
  */
-function parseBucketName(uri) {
+function parseBucketName(url) {
 
     let bucket;
     let object;
-    if (uri.startsWith("gs://")) {
-        const i = uri.indexOf('/', 5);
+    if (url.startsWith("gs://")) {
+        const i = url.indexOf('/', 5);
         if (i >= 0) {
-            bucket = uri.substring(5, i);
-            const qIdx = uri.indexOf('?');
-            object = (qIdx < 0) ? uri.substring(i + 1) : uri.substring(i + 1, qIdx);
+            bucket = url.substring(5, i);
+            const qIdx = url.indexOf('?');
+            object = (qIdx < 0) ? url.substring(i + 1) : url.substring(i + 1, qIdx);
         }
 
-    } else if (uri.startsWith("https://storage.googleapis.com") || uri.startsWith("https://storage.cloud.google.com")) {
-        const bucketIdx = uri.indexOf("/v1/b/", 30)
+    } else if (url.startsWith("https://storage.googleapis.com") || url.startsWith("https://storage.cloud.google.com")) {
+        const bucketIdx = url.indexOf("/v1/b/", 30)
         if (bucketIdx > 0) {
-            const objIdx = uri.indexOf("/o/", bucketIdx);
+            const objIdx = url.indexOf("/o/", bucketIdx);
             if (objIdx > 0) {
-                const queryIdx = uri.indexOf("?", objIdx);
-                bucket = uri.substring(bucketIdx + 6, objIdx);
-                object = queryIdx > 0 ? uri.substring(objIdx + 3, queryIdx) : uri.substring(objIdx + 3);
+                const queryIdx = url.indexOf("?", objIdx);
+                bucket = url.substring(bucketIdx + 6, objIdx);
+                object = queryIdx > 0 ? url.substring(objIdx + 3, queryIdx) : url.substring(objIdx + 3);
             }
 
         } else {
-            const idx1 = 30;
-            const idx2 = url.indexOf("/", 30);
+            const idx1 = 31;
+            const idx2 = url.indexOf("/", idx1);
             const idx3 = url.indexOf("?", idx2);
             if (idx2 > 0) {
-                bucket = uri.substring(idx1, idx2);
-                object = idx3 < 0 ? uri.substring(idx2) : uri.substring(idx2, idx3);
+                bucket = url.substring(idx1, idx2);
+                object = idx3 < 0 ? url.substring(idx2+1) : url.substring(idx2, idx3);
             }
         }
 
-    } else if (uri.startsWith("https://www.googleapis.com/storage/v1/b")) {
+    } else if (url.startsWith("https://www.googleapis.com/storage/v1/b")) {
         const bucketIdx = 40;
-        const objIdx = uri.indexOf("/o/", bucketIdx);
+        const objIdx = url.indexOf("/o/", bucketIdx);
         if (objIdx > 0) {
             const queryIdx = url.indexOf("?", objIdx);
-            bucket = uri.substring(bucketIdx + 6, objIdx);
-            object = queryIdx > 0 ? uri.substring(objIdx + 3, queryIdx) : uri.substring(objIdx + 3);
+            bucket = url.substring(bucketIdx + 6, objIdx);
+            object = queryIdx > 0 ? url.substring(objIdx + 3, queryIdx) : url.substring(objIdx + 3);
         }
     }
 
@@ -90,7 +90,7 @@ function parseBucketName(uri) {
             bucket, object
         }
     } else {
-        throw Error(`Unrecognized Google Storage URI: ${uri}`)
+        throw Error(`Unrecognized Google Storage URI: ${url}`)
     }
 
 }
