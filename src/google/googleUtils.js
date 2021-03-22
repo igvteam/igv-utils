@@ -15,29 +15,83 @@ function isGoogleDriveURL(url) {
     return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
 }
 
+/**
+ * Translate gs:// urls to https
+ * See https://cloud.google.com/storage/docs/json_api/v1
+ * @param gsUrl
+ * @returns {string|*}
+ */
 function translateGoogleCloudURL(gsUrl) {
 
-    var i, bucket, object, qIdx, objectString, paramString;
+    let {bucket, object} = parseBucketName(gsUrl);
+    object = encodeURIComponent(object);
 
-    i = gsUrl.indexOf('/', 5);
-    qIdx = gsUrl.indexOf('?');
+    const qIdx = gsUrl.indexOf('?');
+    const paramString = (qIdx > 0) ? gsUrl.substring(qIdx) + "&alt=media" : "?alt=media";
 
-    if (i < 0) {
-        console.log("Invalid gs url: " + gsUrl);
-        return gsUrl;
+    return `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${object}${paramString}`
+}
+
+/**
+ * Parse a google bucket and object name from a google storage URL.  Known forms include
+ *
+ * gs://BUCKET_NAME/OBJECT_NAME
+ * https://storage.googleapis.com/BUCKET_NAME/OBJECT_NAME
+ * https://storage.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
+ * https://www.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME"
+ * https://storage.googleapis.com/download/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
+ *
+ * @param url
+ */
+function parseBucketName(uri) {
+
+    let bucket;
+    let object;
+    if (uri.startsWith("gs://")) {
+        const i = uri.indexOf('/', 5);
+        if (i >= 0) {
+            bucket = uri.substring(5, i);
+            const qIdx = uri.indexOf('?');
+            object = (qIdx < 0) ? uri.substring(i + 1) : uri.substring(i + 1, qIdx);
+        }
+
+    } else if (uri.startsWith("https://storage.googleapis.com") || uri.startsWith("https://storage.cloud.google.com")) {
+        const bucketIdx = uri.indexOf("/v1/b/", 30)
+        if (bucketIdx > 0) {
+            const objIdx = uri.indexOf("/o/", bucketIdx);
+            if (objIdx > 0) {
+                const queryIdx = uri.indexOf("?", objIdx);
+                bucket = uri.substring(bucketIdx + 6, objIdx);
+                object = queryIdx > 0 ? uri.substring(objIdx + 3, queryIdx) : uri.substring(objIdx + 3);
+            }
+
+        } else {
+            const idx1 = 30;
+            const idx2 = url.indexOf("/", 30);
+            const idx3 = url.indexOf("?", idx2);
+            if (idx2 > 0) {
+                bucket = uri.substring(idx1, idx2);
+                object = idx3 < 0 ? uri.substring(idx2) : uri.substring(idx2, idx3);
+            }
+        }
+
+    } else if (uri.startsWith("https://www.googleapis.com/storage/v1/b")) {
+        const bucketIdx = 40;
+        const objIdx = uri.indexOf("/o/", bucketIdx);
+        if (objIdx > 0) {
+            const queryIdx = url.indexOf("?", objIdx);
+            bucket = uri.substring(bucketIdx + 6, objIdx);
+            object = queryIdx > 0 ? uri.substring(objIdx + 3, queryIdx) : uri.substring(objIdx + 3);
+        }
     }
 
-    bucket = gsUrl.substring(5, i);
-
-    objectString = (qIdx < 0) ? gsUrl.substring(i + 1) : gsUrl.substring(i + 1, qIdx);
-    object = encodeURIComponent(objectString);
-
-    if (qIdx > 0) {
-        paramString = gsUrl.substring(qIdx);
+    if (bucket && object) {
+        return {
+            bucket, object
+        }
+    } else {
+        throw Error(`Unrecognized Google Storage URI: ${uri}`)
     }
-
-    return "https://www.googleapis.com/storage/v1/b/" + bucket + "/o/" + object +
-        (paramString ? paramString + "&alt=media" : "?alt=media");
 
 }
 
@@ -72,7 +126,7 @@ function getGoogleDriveFileID(link) {
         let i1 = link.indexOf("/files/")
         const i2 = link.indexOf("?")
         if (i1 > 0) {
-           i1 += 7;
+            i1 += 7;
             return i2 > 0 ?
                 link.substring(i1, i2) :
                 link.substring(i1)
@@ -86,7 +140,7 @@ function getGoogleDriveFileID(link) {
 
 export {
     isGoogleURL, driveDownloadURL, getGoogleDriveFileID,
-    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL
+    isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL, parseBucketName
 }
 
 

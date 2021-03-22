@@ -136,12 +136,8 @@ async function loadURL(url, options) {
 
         // Various Google tansformations
         if (GoogleUtils.isGoogleURL(url)) {
-            if (url.startsWith("gs://")) {
+            if (GoogleUtils.isGoogleStorageURL(url)) {
                 url = GoogleUtils.translateGoogleCloudURL(url);
-            } else if (GoogleUtils.isGoogleStorageURL(url)) {
-                if (!url.includes("altMedia=")) {
-                    url += (url.includes("?") ? "&altMedia=true" : "?altMedia=true");
-                }
             }
             url = addApiKey(url);
 
