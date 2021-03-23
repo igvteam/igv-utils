@@ -105,6 +105,14 @@ suite("testGoogle", async function () {
         assert.equal("Aparasiticum_pilon2nd.fasta.fai", bo.object);
     })
 
+    test("google storage 9", function () {
+        let gsURL = "https://storage.cloud.google.com/fc-0d14d0d0-242d-40c8-bc98-055c6639e05d/CopyNumber.seg?authuser=1";
+        let bo = GoogleUtils.parseBucketName(gsURL);
+        assert.equal("fc-0d14d0d0-242d-40c8-bc98-055c6639e05d", bo.bucket);
+        assert.equal("CopyNumber.seg", bo.object);
+    })
+
+
 
 })
 

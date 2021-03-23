@@ -47,6 +47,7 @@ function parseBucketName(url) {
 
     let bucket;
     let object;
+
     if (url.startsWith("gs://")) {
         const i = url.indexOf('/', 5);
         if (i >= 0) {
@@ -56,7 +57,7 @@ function parseBucketName(url) {
         }
 
     } else if (url.startsWith("https://storage.googleapis.com") || url.startsWith("https://storage.cloud.google.com")) {
-        const bucketIdx = url.indexOf("/v1/b/", 30)
+        const bucketIdx = url.indexOf("/v1/b/", 8)
         if (bucketIdx > 0) {
             const objIdx = url.indexOf("/o/", bucketIdx);
             if (objIdx > 0) {
@@ -66,17 +67,17 @@ function parseBucketName(url) {
             }
 
         } else {
-            const idx1 = 31;
-            const idx2 = url.indexOf("/", idx1);
+            const idx1 = url.indexOf("/", 8);
+            const idx2 = url.indexOf("/", idx1+1);
             const idx3 = url.indexOf("?", idx2);
             if (idx2 > 0) {
-                bucket = url.substring(idx1, idx2);
-                object = idx3 < 0 ? url.substring(idx2+1) : url.substring(idx2, idx3);
+                bucket = url.substring(idx1+1, idx2);
+                object = idx3 < 0 ? url.substring(idx2+1) : url.substring(idx2+1, idx3);
             }
         }
 
     } else if (url.startsWith("https://www.googleapis.com/storage/v1/b")) {
-        const bucketIdx = 40;
+        const bucketIdx = url.indexOf("/v1/b/", 8);
         const objIdx = url.indexOf("/o/", bucketIdx);
         if (objIdx > 0) {
             const queryIdx = url.indexOf("?", objIdx);
