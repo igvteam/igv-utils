@@ -24,7 +24,7 @@ function isGoogleDriveURL(url) {
 function translateGoogleCloudURL(gsUrl) {
 
     let {bucket, object} = parseBucketName(gsUrl);
-    object = encodeURIComponent(object);
+    object = encode(object);
 
     const qIdx = gsUrl.indexOf('?');
     const paramString = (qIdx > 0) ? gsUrl.substring(qIdx) + "&alt=media" : "?alt=media";
@@ -138,6 +138,56 @@ function getGoogleDriveFileID(link) {
 
 
 }
+
+
+/**
+ * Percent a GCS object name.  See https://cloud.google.com/storage/docs/request-endpoints
+ * Specific characters to encode:
+ *   !, #, $, &, ', (, ), *, +, ,, /, :, ;, =, ?, @, [, ], and space characters.
+ * @param obj
+ */
+
+function encode(objectName) {
+
+    let result = '';
+    objectName.split('').forEach(function(letter) {
+        if(encodings.has(letter)) {
+            result += encodings.get(letter);
+        } else {
+            result += letter;
+        }
+    })
+    return result;
+}
+
+//	%23	%24	%25	%26	%27	%28	%29	%2A	%2B	%2C	%2F	%3A	%3B	%3D	%3F	%40	%5B	%5D
+const encodings = new Map();
+encodings.set("!", "%21");
+encodings.set("#", "%23");
+encodings.set("$", "%24");
+encodings.set("%", "%25");
+encodings.set("&", "%26");
+encodings.set("'", "%27");
+encodings.set("(", "%28");
+encodings.set(")", "%29");
+encodings.set("*", "%2A");
+encodings.set("+", "%2B");
+encodings.set(",", "%2C");
+encodings.set("/", "%2F");
+encodings.set(":", "%3A");
+encodings.set(";", "%3B");
+encodings.set("=", "%3D");
+encodings.set("?", "%3F");
+encodings.set("@", "%40");
+encodings.set("[", "%5B");
+encodings.set("]", "%5D");
+encodings.set(" ", "%20");
+
+// For testing
+//for(let [key, value] of encodings) {
+//    const v2 = encodeURIComponent(key);
+//    console.log(value + "  " + v2);
+//}
 
 export {
     isGoogleURL, driveDownloadURL, getGoogleDriveFileID,
