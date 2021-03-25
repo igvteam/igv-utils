@@ -15,20 +15,11 @@ suite("testGoogle", async function () {
         assert.equal(id, "1VHkNjxyj9FaNSkqSSZBlo-hgw8FnW-sM")
     })
 
-
     test("download url", function () {
         const url = "https://www.googleapis.com/drive/v3/files/1w-tvo6p1SH4p1OaQSVxpkV_EJgGIstWF?alt=media&supportsTeamDrives=true";
         const id = GoogleUtils.getGoogleDriveFileID(url);
         assert.equal(id, "1w-tvo6p1SH4p1OaQSVxpkV_EJgGIstWF")
     })
-
-    /*
-* gs://BUCKET_NAME/OBJECT_NAME
-* https://storage.googleapis.com/BUCKET_NAME/OBJECT_NAME
-    * https://storage.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
-    * https://www.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME"
-    * https://storage.googleapis.com/download/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
-*/
 
     test("google storage 1", function () {
         let gsURL = "gs://BUCKET_NAME/OBJECT_NAME";
@@ -111,8 +102,6 @@ suite("testGoogle", async function () {
         assert.equal("fc-0d14d0d0-242d-40c8-bc98-055c6639e05d", bo.bucket);
         assert.equal("CopyNumber.seg", bo.object);
     })
-
-
-
+    
 })
 
