@@ -131,11 +131,8 @@ function inferFileFormat(fn) {
             return "bigbed";
 
         default:
-            if (knownFileExtensions.has(ext)) {
-                return ext;
-            } else {
-                return undefined;
-            }
+            return ext;
+
     }
 
 }
