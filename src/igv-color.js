@@ -26,6 +26,10 @@
 import IGVMath from "./igv-math.js";
 import {stripQuotes} from "./stringUtils.js";
 
+function _random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
 const IGVColor = {
 
     rgbListFromHSV: () => {
@@ -183,7 +187,7 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var g = Math.round(Math.random(min, max)).toString(10);
+        var g = Math.round(_random(min, max)).toString(10);
 
         return "rgb(" + g + "," + g + "," + g + ")";
     },
@@ -193,9 +197,9 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var r = Math.round(Math.random(min, max)).toString(10);
-        var g = Math.round(Math.random(min, max)).toString(10);
-        var b = Math.round(Math.random(min, max)).toString(10);
+        var r = Math.round(_random(min, max)).toString(10);
+        var g = Math.round(_random(min, max)).toString(10);
+        var b = Math.round(_random(min, max)).toString(10);
 
         return "rgb(" + r + "," + g + "," + b + ")";
     },
@@ -205,9 +209,9 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var r = Math.round(Math.random(min, max)).toString(10);
-        var g = Math.round(Math.random(min, max)).toString(10);
-        var b = Math.round(Math.random(min, max)).toString(10);
+        var r = Math.round(_random(min, max)).toString(10);
+        var g = Math.round(_random(min, max)).toString(10);
+        var b = Math.round(_random(min, max)).toString(10);
 
         return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     },
