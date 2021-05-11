@@ -1,12 +1,5 @@
 import Zlib from "./vendor/zlib_and_gzip.js";
 
-let _btoa;
-if(typeof btoa === 'undefined') {
-    _btoa = require('btoa');
-} else {
-    _btoa = btoa;
-}
-
 /**
  * Covers string literals and String objects
  * @param x
@@ -95,7 +88,7 @@ function compressString(str) {
     }
     const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
     const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    let enc = _btoa(compressedString);
+    let enc = btoa(compressedString);
     return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
 }
 
