@@ -38,22 +38,24 @@ function getExtension(url) {
 
 function getFilename (urlOrFile) {
 
+    let filename
     if (urlOrFile instanceof File) {
-        return urlOrFile.name;
+        filename = urlOrFile.name;
     } else if (isString(urlOrFile)){
 
         let index = urlOrFile.lastIndexOf("/");
-        let filename = index < 0 ? urlOrFile : urlOrFile.substr(index + 1);
+        filename = index < 0 ? urlOrFile : urlOrFile.substr(index + 1);
 
         //Strip parameters -- handle local files later
         index = filename.indexOf("?");
         if (index > 0) {
             filename = filename.substr(0, index);
         }
-        return filename;
     } else {
         throw Error(`Expected File or string, got ${typeof urlOrFile}`);
     }
+
+    return decodeURIComponent(filename)
 }
 
 async function getFilenameExtended (path) {
