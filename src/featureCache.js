@@ -37,6 +37,7 @@ class FeatureCache {
 
     constructor(featureList, genome, range) {
 
+        featureList = featureList || [];
         this.treeMap = this.buildTreeMap(featureList, genome);
         this.range = range;
         this.count = featureList.length;
