@@ -129,9 +129,12 @@ function inferFileFormat(fn) {
             return "bigwig";
         case "bb":
             return "bigbed";
-
         default:
-            return ext;
+            if(knownFileExtensions.has(ext)) {
+                return ext;
+            } else {
+                return undefined;
+            }
 
     }
 
