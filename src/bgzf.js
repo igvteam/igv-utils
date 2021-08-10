@@ -1,13 +1,30 @@
-import Zlib from "./vendor/zlib_and_gzip.js";
+import pako from "./vendor/pako.js";
 
-const BLOCK_HEADER_LENGTH = 18;
-const BLOCK_LENGTH_OFFSET = 16;  // Location in the gzip block of the total block size (actually total block size - 1)
-const BLOCK_FOOTER_LENGTH = 8; // Number of bytes that follow the deflated data
-const MAX_COMPRESSED_BLOCK_SIZE = 64 * 1024; // We require that a compressed block (including header and footer, be <= this)
-const GZIP_OVERHEAD = BLOCK_HEADER_LENGTH + BLOCK_FOOTER_LENGTH + 2; // Gzip overhead is the header, the footer, and the block size (encoded as a short).
-const GZIP_ID1 = 31;   // Magic number
-const GZIP_ID2 = 139;  // Magic number
-const GZIP_FLG = 4; // FEXTRA flag means there are optional fields
+const deflateRaw = pako.deflateRaw;
+const deflate = pako.deflate;
+const inflateRaw = pako.inflateRaw;
+const inflate = pako.inflate;
+const gzip = pako.gzip;
+
+const FEXTRA = 4;  // gzip spec F.EXTRA flag
+
+function isgzipped(data) {
+    const b = ArrayBuffer.isView(data) ? ba : new Uint8Array(data);
+    return b[0] ===31 && b[1] === 139;
+}
+
+/**
+ * Pako does not properly ungzip block compressed files if > 1 block is present.  Test for bgzip and use wrapper.
+ */
+function ungzip(data) {
+    const ba = ArrayBuffer.isView(data) ? ba : new Uint8Array(data);
+    const b = ba[3] & FEXTRA;
+    if (b !== 0 && ba[12] === 66 && ba[13] === 67) {
+        return unbgzf(ba.buffer);
+    } else {
+        return pako.ungzip(ba);
+    }
+}
 
 // Uncompress data,  assumed to be series of bgzipped blocks
 function unbgzf(data, lim) {
@@ -22,6 +39,8 @@ function unbgzf(data, lim) {
         try {
             const ba = new Uint8Array(data, ptr, 18);
             const xlen = (ba[11] << 8) | (ba[10]);
+            const flg = ba[3];
+            const fextra = flg & FEXTRA;
             const si1 = ba[12];
             const si2 = ba[13];
             const slen = (ba[15] << 8) | (ba[14]);
@@ -32,10 +51,12 @@ function unbgzf(data, lim) {
             if (bytesLeft < cDataSize || cDataSize <= 0) break;
 
             const a = new Uint8Array(data, start, cDataSize);
-            const inflate = new Zlib.RawInflate(a);
-            const unc = inflate.decompress();
+            const unc = pako.inflateRaw(a);
 
-            ptr += inflate.ip + 26
+            // const inflate = new Zlib.RawInflate(a);
+            // const unc = inflate.decompress();
+
+            ptr += (cDataSize - 1) + 26; //inflate.ip + 26
             totalSize += unc.byteLength;
             oBlockList.push(unc);
         } catch (e) {
@@ -101,5 +122,6 @@ function arrayCopy_fast(src, dest, destOffset) {
     dest.set(src, destOffset);
 }
 
-export {unbgzf, bgzBlockSize};
+
+export {unbgzf, bgzBlockSize, deflateRaw, deflate, gzip, inflate, inflateRaw, ungzip, isgzipped};
 

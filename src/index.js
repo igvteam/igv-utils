@@ -11,7 +11,6 @@ import * as GoogleAuth from './google/googleAuth.js'
 import * as GooglePicker from './google/googleFilePicker.js';
 import * as GoogleDrive from './google/googleDrive.js';
 import * as BGZip from './bgzf.js';
-import Zlib from "./vendor/zlib_and_gzip.js";
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
 import makeDraggable from "./draggable.js"
@@ -32,7 +31,6 @@ export {
     DOMUtils,
     UIUtils,
     Icon,
-    Zlib,
     makeDraggable,
     appleCrayonPalette,
     nucleotideColorComponents,

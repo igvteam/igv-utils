@@ -24,14 +24,13 @@
  */
 
 import oauth from "./oauth.js";
-import {unbgzf} from './bgzf.js';
+import {unbgzf, ungzip, isgzipped} from './bgzf.js';
 import * as StringUtils from './stringUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './uriUtils.js'
 import * as GoogleUtils from './google/googleUtils.js'
 import * as GoogleAuth from './google/googleAuth.js'
 import * as GoogleDrive from './google/googleDrive.js';
-import Zlib from "./vendor/zlib_and_gzip.js"
 import Throttle from "./throttle.js"
 
 var NONE = 0;
@@ -174,7 +173,7 @@ async function loadURL(url, options) {
 
         xhr.open(method, url);
 
-        if(options.timeout) {
+        if (options.timeout) {
             xhr.timeout = options.timeout;
         }
 
@@ -318,19 +317,8 @@ async function loadFileSlice(localfile, options) {
 async function loadStringFromFile(localfile, options) {
 
     const blob = options.range ? localfile.slice(options.range.start, options.range.start + options.range.size) : localfile;
-    let compression = NONE;
-    if (options && options.bgz || localfile.name.endsWith(".bgz")) {
-        compression = BGZF;
-    } else if (localfile.name.endsWith(".gz")) {
-        compression = GZIP;
-    }
-
-    if (compression === NONE) {
-        return blobToText(blob);
-    } else {
-        const arrayBuffer = await blobToArrayBuffer(blob);
-        return arrayBufferToString(arrayBuffer, compression);
-    }
+    const arrayBuffer = await blobToArrayBuffer(blob);
+    return arrayBufferToString(arrayBuffer);
 }
 
 async function blobToArrayBuffer(blob) {
@@ -370,18 +358,9 @@ async function blobToText(blob) {
 async function loadStringFromUrl(url, options) {
 
     options = options || {};
-
-    const fn = options.filename || await getFilename(url);
-    let compression = UNKNOWN;
-    if (options.bgz) {
-        compression = BGZF;
-    } else if (fn.endsWith(".gz")) {
-        compression = GZIP;
-    }
-
     options.responseType = "arraybuffer";
     const data = await igvxhr.load(url, options);
-    return arrayBufferToString(data, compression);
+    return arrayBufferToString(data);
 }
 
 
@@ -490,21 +469,11 @@ function mapUrl(url) {
 }
 
 
-function arrayBufferToString(arraybuffer, compression) {
-
-    if (compression === UNKNOWN && arraybuffer.byteLength > 2) {
-        const m = new Uint8Array(arraybuffer, 0, 2);
-        if (m[0] === 31 && m[1] === 139) {
-            compression = GZIP;
-        }
-    }
+function arrayBufferToString(arraybuffer) {
 
     let plain;
-    if (compression === GZIP) {
-        const inflate = new Zlib.Gunzip(new Uint8Array(arraybuffer));
-        plain = inflate.decompress();
-    } else if (compression === BGZF) {
-        plain = unbgzf(arraybuffer);
+    if (isgzipped(arraybuffer)) {
+        plain = ungzip(arraybuffer);
     } else {
         plain = new Uint8Array(arraybuffer);
     }

@@ -1,5 +1,4 @@
-import Zlib from "./vendor/zlib_and_gzip.js";
-
+import pako from "./vendor/pako.js";
 /**
  * Covers string literals and String objects
  * @param x
@@ -107,7 +106,8 @@ function uncompressString(enc) {
     for (let i = 0; i < compressedString.length; i++) {
         compressedBytes.push(compressedString.charCodeAt(i));
     }
-    const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+    //const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+    const bytes = pako.inflateRaw(compressedBytes);
 
     let str = ''
     for (let b of bytes) {
