@@ -1,9 +1,7 @@
 import "./utils/mockObjects.js"
 import {assert} from 'chai';
-import {URIUtils} from "../src/index.js"
-import {GoogleUtils, GoogleAuth, GoogleDrive} from "../src/index.js";
-import {getGoogleDriveFileID} from "../src/google/googleUtils"
 
+import * as GoogleUtils from '../src/google/googleUtils.js'
 suite("testGoogle", async function () {
 
     /**

@@ -24,7 +24,7 @@
  */
 
 import oauth from "./oauth.js";
-import {unbgzf, ungzip, isgzipped} from './bgzf.js';
+import {ungzip, isgzipped, decodeDataURI} from './bgzf.js';
 import * as StringUtils from './stringUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './uriUtils.js'
@@ -101,7 +101,7 @@ async function load(url, options) {
         return loadFileSlice(url, options);
     } else if (typeof url.startsWith === 'function') {   // Test for string
         if (url.startsWith("data:")) {
-            return URIUtils.decodeDataURI(url)
+            return decodeDataURI(url)
         } else {
             if (url.startsWith("https://drive.google.com")) {
                 url = GoogleUtils.driveDownloadURL(url);

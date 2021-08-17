@@ -1,4 +1,4 @@
-import pako from "./vendor/pako.js";
+
 /**
  * Covers string literals and String objects
  * @param x
@@ -75,47 +75,6 @@ function hashCode(s) {
     }, 0);
 }
 
-/**
- * Compress string and encode in a url safe form
- * @param s
- */
-function compressString(str) {
-
-    const bytes = [];
-    for (var i = 0; i < str.length; i++) {
-        bytes.push(str.charCodeAt(i));
-    }
-    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
-    const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    let enc = btoa(compressedString);
-    return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
-}
-
-/**
- * Uncompress the url-safe encoded compressed string, presumably created by compressString above
- *
- * @param enc
- * @returns {string}
- */
-function uncompressString(enc) {
-
-    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
-
-    const compressedString = atob(enc);
-    const compressedBytes = [];
-    for (let i = 0; i < compressedString.length; i++) {
-        compressedBytes.push(compressedString.charCodeAt(i));
-    }
-    //const bytes = new Zlib.RawInflate(compressedBytes).decompress();
-    const bytes = pako.inflateRaw(compressedBytes);
-
-    let str = ''
-    for (let b of bytes) {
-        str += String.fromCharCode(b)
-    }
-    return str;
-}
-
 function capitalize(str) {
     return str.length > 0 ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
@@ -146,5 +105,5 @@ function parseLocusString(string) {
 
 export {
     isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, stripQuotes,
-    hashCode, compressString, uncompressString, capitalize, parseLocusString
+    hashCode, capitalize, parseLocusString
 };

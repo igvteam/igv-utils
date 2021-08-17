@@ -123,5 +123,77 @@ function arrayCopy_fast(src, dest, destOffset) {
 }
 
 
-export {unbgzf, bgzBlockSize, deflateRaw, deflate, gzip, inflate, inflateRaw, ungzip, isgzipped};
+/**
+ * Compress string and encode in a url safe form
+ * @param s
+ */
+function compressString(str) {
+
+    const bytes = [];
+    for (var i = 0; i < str.length; i++) {
+        bytes.push(str.charCodeAt(i));
+    }
+    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
+    let enc = btoa(compressedString);
+    return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
+}
+
+/**
+ * Uncompress the url-safe encoded compressed string, presumably created by compressString above
+ *
+ * @param enc
+ * @returns {string}
+ */
+function uncompressString(enc) {
+
+    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+
+    const compressedString = atob(enc);
+    const compressedBytes = [];
+    for (let i = 0; i < compressedString.length; i++) {
+        compressedBytes.push(compressedString.charCodeAt(i));
+    }
+    //const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+    const bytes = pako.inflateRaw(compressedBytes);
+
+    let str = ''
+    for (let b of bytes) {
+        str += String.fromCharCode(b)
+    }
+    return str;
+}
+
+
+/**
+ * @param dataURI
+ * @returns {Array<number>|Uint8Array}
+ */
+function decodeDataURI(dataURI, gzip) {
+
+    const split = dataURI.split(',');
+    const info = split[0].split(':')[1];
+    let dataString = split[1];
+
+    if (info.indexOf('base64') >= 0) {
+        dataString = atob(dataString);
+    } else {
+        dataString = decodeURI(dataString);      // URL encoded string -- not currently used of tested
+    }
+    const bytes = new Uint8Array(dataString.length);
+    for (let i = 0; i < dataString.length; i++) {
+        bytes[i] = dataString.charCodeAt(i);
+    }
+
+    let plain
+    if (gzip || info.indexOf('gzip') > 0) {
+        plain = pako.ungzip(bytes)
+    } else {
+        plain = bytes
+    }
+    return plain
+}
+
+
+export {unbgzf, bgzBlockSize, deflateRaw, deflate, gzip, inflate, inflateRaw, ungzip, isgzipped, compressString, uncompressString, decodeDataURI};
 

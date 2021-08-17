@@ -2,7 +2,7 @@
 // Run from the command line with "esm" option
 //    node -r esm sessionBlob.js
 
-import {StringUtils} from "../src";
+import * as BGZip from '../src/bgzf.js';
 
 const session =         {
     "genome": "hg38",
@@ -18,7 +18,7 @@ const session =         {
 
 const json = JSON.stringify(session);
 
-const blobParameter = StringUtils.compressString(json);
+const blobParameter = BGZip.compressString(json);
 
 console.log(blobParameter);
 

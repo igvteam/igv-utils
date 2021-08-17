@@ -1,39 +1,9 @@
-import pako from "./vendor/pako.js";
-
 if (typeof process === 'object' && typeof window === 'undefined') {
     global.atob = function (str) {
         return Buffer.from(str, 'base64').toString('binary');
     }
 }
 
-/**
- * @param dataURI
- * @returns {Array<number>|Uint8Array}
- */
-function decodeDataURI(dataURI, gzip) {
-
-    const split = dataURI.split(',');
-    const info = split[0].split(':')[1];
-    let dataString = split[1];
-
-    if (info.indexOf('base64') >= 0) {
-        dataString = atob(dataString);
-    } else {
-        dataString = decodeURI(dataString);      // URL encoded string -- not currently used of tested
-    }
-    const bytes = new Uint8Array(dataString.length);
-    for (let i = 0; i < dataString.length; i++) {
-        bytes[i] = dataString.charCodeAt(i);
-    }
-
-    let plain
-    if (gzip || info.indexOf('gzip') > 0) {
-        plain = pako.ungzip(bytes)
-    } else {
-        plain = bytes
-    }
-    return plain
-}
 
 function parseUri(str) {
 
@@ -85,5 +55,5 @@ async function resolveURL(url) {
     return (typeof url === 'function')  ?  url() :  url;
 }
 
-export {parseUri, decodeDataURI, addExtension, resolveURL};
+export {parseUri, addExtension, resolveURL};
 

@@ -1,6 +1,6 @@
 import "./utils/mockObjects.js"
 import {assert} from 'chai';
-import {IGVColor} from "../src/index.js"
+import IGVColor from "../src/igv-color.js"
 
 suite("color utils", function () {
 

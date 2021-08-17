@@ -14,3 +14,4 @@
 /examples/oauthConfig-private.js
 /examples/googleDriveExample.html
 /package-lock.json
+/test/oauthConfig-private.js
