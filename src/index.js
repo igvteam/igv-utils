@@ -1,6 +1,3 @@
-index.js is deprecated for this package to enable efficient tree shaking by client projects.  This file
-is kept to aid converting client projects.
-
 import * as Icon from './icons.js'
 import * as UIUtils from "./ui-utils.js"
 import * as DOMUtils from "./dom-utils.js"
