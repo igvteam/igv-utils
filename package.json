@@ -2,6 +2,7 @@
   "name": "igv-utils",
   "version": "1.3.0",
   "description": "Misc code shared by igvteam projects",
+  "module": "src/index.txt",
   "files": [
     "src/**"
   ],
