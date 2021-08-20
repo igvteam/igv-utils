@@ -1,9 +1,23 @@
 import "./utils/mockObjects.js"
-import {ungzip, decodeDataURI, uncompressString} from "../src/bgzf.js";
+import {isgzipped, ungzip, decodeDataURI, uncompressString} from "../src/bgzf.js";
 import igvxhr from "../src/igvxhr.js";
 import {assert} from 'chai';
 
 suite("testTabix", function () {
+
+    test("isGzipped", async function () {
+        const url = require.resolve("./data/json/example.json.bgz");
+        const data = await igvxhr.load(url,
+            {
+                responseType: "arraybuffer",
+            })
+        const result = isgzipped(data);
+        assert.equal(result, true);
+
+        const result2 = isgzipped(new Uint8Array(data));
+        assert.equal(result2, true)
+
+    })
 
     /**
      * Very minimal test of a small file, most likely compressed into a single block.
@@ -22,6 +36,11 @@ suite("testTabix", function () {
             "  {\"firstName\":\"Peter\", \"lastName\":\"Jones\"}\n" +
             "]}\n"
         assert.equal(str, expected)
+
+        const result2 = ungzip(new Uint8Array(data));
+        const str2 = String.fromCharCode.apply(null, result2);
+        assert.equal(str2, expected)
+
     })
 
     /**
@@ -42,6 +61,11 @@ suite("testTabix", function () {
             "  {\"firstName\":\"Peter\", \"lastName\":\"Jones\"}\n" +
             "]}\n"
         assert.equal(str, expected)
+
+        const result2 = ungzip(new Uint8Array(data));
+        const str2 = String.fromCharCode.apply(null, result2);
+        assert.equal(str2, expected)
+
     })
 
     /**

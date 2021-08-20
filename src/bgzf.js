@@ -9,7 +9,7 @@ const gzip = pako.gzip;
 const FEXTRA = 4;  // gzip spec F.EXTRA flag
 
 function isgzipped(data) {
-    const b = ArrayBuffer.isView(data) ? ba : new Uint8Array(data);
+    const b = ArrayBuffer.isView(data) ? data : new Uint8Array(data);
     return b[0] ===31 && b[1] === 139;
 }
 
@@ -17,7 +17,7 @@ function isgzipped(data) {
  * Pako does not properly ungzip block compressed files if > 1 block is present.  Test for bgzip and use wrapper.
  */
 function ungzip(data) {
-    const ba = ArrayBuffer.isView(data) ? ba : new Uint8Array(data);
+    const ba = ArrayBuffer.isView(data) ? data : new Uint8Array(data);
     const b = ba[3] & FEXTRA;
     if (b !== 0 && ba[12] === 66 && ba[13] === 67) {
         return unbgzf(ba.buffer);
@@ -37,7 +37,7 @@ function unbgzf(data, lim) {
 
     while (ptr < lim) {
         try {
-            const ba = new Uint8Array(data, ptr, 18);
+            const ba = ArrayBuffer.isView(data) ? data : new Uint8Array(data, ptr, 18);
             const xlen = (ba[11] << 8) | (ba[10]);
             const flg = ba[3];
             const fextra = flg & FEXTRA;
@@ -81,7 +81,7 @@ function unbgzf(data, lim) {
 }
 
 function bgzBlockSize(data) {
-    const ba = new Uint8Array(data);
+    const ba = ArrayBuffer.isView(data) ? data : new Uint8Array(data);
     const bsize = (ba[17] << 8 | ba[16]) + 1;
     return bsize;
 }
