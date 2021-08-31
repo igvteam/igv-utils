@@ -103,7 +103,7 @@ async function load(url, options) {
         if (url.startsWith("data:")) {
             const buffer = decodeDataURI(url).buffer;
             if(options.range) {
-                const rangeEnd = options.range.size ? options.range.start + options.range.size - 1 : buffer.byteLength;
+                const rangeEnd = options.range.size ? options.range.start + options.range.size : buffer.byteLength;
                 return buffer.slice(options.range.start, rangeEnd);
             } else {
                 return buffer;

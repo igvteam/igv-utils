@@ -11,7 +11,7 @@ suite("testIgvXhr", function () {
         assert.ok(arrayBuffer);
         const dataView = new DataView(arrayBuffer);
         const start = range ? range.start : 0;
-        for (let i = 0; i < range.size; i++) {
+        for (let i = 0; i <= range.size; i++) {
             const expectedValue = -128 + range.start + i;
             const value = dataView.getInt8(i);
             assert.equal(expectedValue, value);
@@ -94,6 +94,7 @@ suite("testIgvXhr", function () {
             {
                 range: range
             });
+        assert.equal(data.byteLength, range.size);
         verifyBytes(data, assert);
     });
 
