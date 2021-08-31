@@ -177,21 +177,22 @@ function decodeDataURI(dataURI, gzip) {
 
     if (info.indexOf('base64') >= 0) {
         dataString = atob(dataString);
-    } else {
-        dataString = decodeURI(dataString);      // URL encoded string -- not currently used of tested
-    }
-    const bytes = new Uint8Array(dataString.length);
-    for (let i = 0; i < dataString.length; i++) {
-        bytes[i] = dataString.charCodeAt(i);
-    }
 
-    let plain
-    if (gzip || info.indexOf('gzip') > 0) {
-        plain = pako.ungzip(bytes)
+        const bytes = new Uint8Array(dataString.length);
+        for (let i = 0; i < dataString.length; i++) {
+            bytes[i] = dataString.charCodeAt(i);
+        }
+
+        let plain
+        if (gzip || info.indexOf('gzip') > 0) {
+            plain = pako.ungzip(bytes)
+        } else {
+            plain = bytes
+        }
+        return plain
     } else {
-        plain = bytes
+        return decodeURIComponent(dataString);      // URL encoded string -- not currently used or tested
     }
-    return plain
 }
 
 

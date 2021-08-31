@@ -101,7 +101,13 @@ async function load(url, options) {
         return loadFileSlice(url, options);
     } else if (typeof url.startsWith === 'function') {   // Test for string
         if (url.startsWith("data:")) {
-            return decodeDataURI(url)
+            const buffer = decodeDataURI(url).buffer;
+            if(options.range) {
+                const rangeEnd = options.range.size ? options.range.start + options.range.size - 1 : buffer.byteLength;
+                return buffer.slice(options.range.start, rangeEnd);
+            } else {
+                return buffer;
+            }
         } else {
             if (url.startsWith("https://drive.google.com")) {
                 url = GoogleUtils.driveDownloadURL(url);
