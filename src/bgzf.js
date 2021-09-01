@@ -129,11 +129,11 @@ function arrayCopy_fast(src, dest, destOffset) {
  */
 function compressString(str) {
 
-    const bytes = [];
+    const bytes = new Uint8Array(str.length);
     for (var i = 0; i < str.length; i++) {
-        bytes.push(str.charCodeAt(i));
+        bytes[i] = str.charCodeAt(i);
     }
-    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    const compressedBytes = new pako.deflateRaw(bytes);            // UInt8Arry
     const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
     let enc = btoa(compressedString);
     return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe

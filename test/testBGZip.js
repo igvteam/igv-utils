@@ -1,9 +1,21 @@
 import "./utils/mockObjects.js"
-import {isgzipped, ungzip, decodeDataURI, uncompressString} from "../src/bgzf.js";
+import {isgzipped, ungzip, decodeDataURI, uncompressString, compressString} from "../src/bgzf.js";
 import igvxhr from "../src/igvxhr.js";
 import {assert} from 'chai';
 
-suite("testTabix", function () {
+suite("testBGzip", function () {
+
+    test("compressString", async function () {
+
+        const str = "!@#$%^&*()_+=//{}"
+        const compressed = compressString(str);
+        const uncomp = uncompressString(compressed);
+        assert.equal(uncomp, str);
+
+    })
+
+
+
 
     test("isGzipped", async function () {
         const url = require.resolve("./data/json/example.json.bgz");
@@ -90,7 +102,7 @@ suite("testTabix", function () {
     test("Test decode URL 1", function () {
         const session = "data:application/gzip;base64,H4sIAAbNClwC/w3Hx5KiQAAA0F/Z8spWMWiDMlt7gBaVHCTfmtzkgSbo1Pz77ru978OUF/mU92l++Pz1fSjQTJDnaP9zyBBBn2gcW5wigoeeLt94/JOgOefA7weYZUFIDNhukD4zTzM4X3XxOl/AcLGbJFUsEcOeLS0MN+/+9aA/smPcNGMWQamC+2uJd41ecPHm1wkc1/lN36k1OCV0wcEWG5RrViKREo6hlnmy0TAGUQDcUSDn6sq/G0uU2ODEh3u1uTS3aCcVlukgJrYQqSQetG1UpizAvnX/6urT7Wrns1NrpJMm3ryEmqzfZBbm5l1NGiojprBFk1EitJAqym03atrjwu2KjFpfkmZx7PbgbTh67giLsmGPudn9DFaPEWAjHut0iXp2hhi9CGllRt2tm4YNxglQ7O8M10+ZCtTJ3GmMwqxYPO/RlVjb3C7zta7K9a/bjsJYbuPUYPdwKlu+1ja2q+2zo6n3RlEweQFv9fXKcuJx3J7bs2vb+pWubs5TelQMH3V4YsBC0QX0awas4CoIwt/Dz88/fLgIFuABAAA=";
         const plain = decodeDataURI(session);
-        str = String.fromCharCode.apply(null, plain);
+        const str = String.fromCharCode.apply(null, plain);
         const expected = "{\"reference\": {\"fastaURL\": \"data:application/gzip;base64,H4sIAAbNClwC/71SOW7DMBDs84o8QkbcJPBiCn5gPiCwUGqH/0d2ZkkpdYCEhCxyuZxL/uifz9vr42vsz/G+vW3b/f6CliN+TOhBtEb61+usrQaopWYW4TpAt7hD9zkPBE5W39XxhwT/6uL3KCgcoBbQAYKtZoLwpJrdWiVPGqmj3FDQesRjLtmEr9O8XLIMFI5CeOGKbk+dtOAwYrNgaauthYeQTYkl2u6xJIalVEEsBpmxWzNRMeRAuJwiU1FQns4vU1ACkB2jcuYn5sCiayttlI1KxPFLiN1RWaZVx16nrdK4KrOx/iaXdfuUUHmgiLwTmdVLmheMqFxaXZIlZcN5xXrgl9jLw5mjQ7RLKGkJJity4UvVMhPRZppwSwSmlljycvTe9+MYfo0jX314u+/fCVj14v4DAAA=\"}}";
         assert.equal(str, expected);
     })
