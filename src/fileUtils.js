@@ -36,11 +36,11 @@ function getExtension(url) {
  * @param urlOrFile
  */
 
-function getFilename (urlOrFile) {
+function getFilename(urlOrFile) {
 
-    if (urlOrFile instanceof File) {
+    if (isFile(urlOrFile)) {
         return urlOrFile.name;
-    } else if (isString(urlOrFile)){
+    } else if (isString(urlOrFile)) {
 
         let index = urlOrFile.lastIndexOf("/");
         let filename = index < 0 ? urlOrFile : urlOrFile.substr(index + 1);
@@ -56,12 +56,12 @@ function getFilename (urlOrFile) {
     }
 }
 
-async function getFilenameExtended (path) {
+async function getFilenameExtended(path) {
 
-    if (path instanceof File) {
+    if (isFile(path)) {
         return path.name
     } else if (isGoogleDriveURL(path)) {
-        if(typeof gapi === "undefined") {
+        if (typeof gapi === "undefined") {
             throw Error(`Google initialization with API key is required to load Google urls (${path})`)
         }
         const info = await getDriveFileInfo(path)
@@ -73,12 +73,19 @@ async function getFilenameExtended (path) {
 
 }
 
-function isFilePath (path) {
-    return (path instanceof File);
+/**
+ * Test if object is a File or File-like object by testing for the "name" property.   This is not a robust test,
+ * but the purpose is to distinguish the object from url strings
+ *
+ * @param object
+ */
+function isFile(object) {
+    return object.hasOwnProperty("name")
 }
 
+const isFilePath = isFile;    // deprecated
 
-function download  (filename, data) {
+function download(filename, data) {
 
     const element = document.createElement('a');
     element.setAttribute('href', data);
@@ -89,4 +96,4 @@ function download  (filename, data) {
     document.body.removeChild(element);
 }
 
-export {getExtension, getFilename, getFilenameExtended, isFilePath, download}
+export {getExtension, getFilename, getFilenameExtended, isFilePath, isFile, download}
