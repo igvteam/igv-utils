@@ -11,6 +11,7 @@ class File {
         this.buffer = buffer;
         this.name = name;
         this.size = buffer.byteLength;
+        this.type = "text/plain";
     }
 
     //var newBlob = blob.slice(start, end, contentType);

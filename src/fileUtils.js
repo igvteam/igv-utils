@@ -80,7 +80,9 @@ async function getFilenameExtended(path) {
  * @param object
  */
 function isFile(object) {
-    return object.hasOwnProperty("name")
+    return object instanceof File ||
+        (typeof object !== "function" &&
+            object.hasOwnProperty("name") && object.hasOwnProperty("size") && object.hasOwnProperty("type"));
 }
 
 const isFilePath = isFile;    // deprecated
