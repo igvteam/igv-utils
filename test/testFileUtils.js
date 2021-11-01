@@ -24,6 +24,8 @@ suite("file utils", function () {
         assert.equal(isFile(f), true);
 
         assert.equal(isFile(foo), false)
+
+        assert.equal(isFile(undefined), false);
     })
 
 
