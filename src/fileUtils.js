@@ -38,7 +38,7 @@ function getExtension(url) {
 
 function getFilename(urlOrFile) {
 
-    if (isFile(urlOrFile)) {
+    if (urlOrFile.name !== undefined) {
         return urlOrFile.name;
     } else if (isString(urlOrFile)) {
 

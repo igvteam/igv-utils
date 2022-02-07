@@ -399,7 +399,6 @@ function getOauthToken(url) {
  * @returns the oauth token
  */
 async function fetchGoogleAccessToken(url) {
-    console.log("Fetch token for " + url);
     if (GoogleAuth.isInitialized()) {
         const scope = GoogleAuth.getScopeForURL(url);
         const googleToken = await GoogleAuth.getAccessToken(scope);
