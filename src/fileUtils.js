@@ -79,7 +79,10 @@ async function getFilenameExtended(path) {
  * @param object
  */
 function isFile(object) {
-    return object && typeof object !== 'function' &&
+    if(!object) {
+        return false;
+    }
+    return typeof object !== 'function' &&
         (object instanceof File ||
             (object.hasOwnProperty("name") && typeof object.slice === 'function' && typeof object.arrayBuffer === 'function'))
 }
