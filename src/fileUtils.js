@@ -38,8 +38,8 @@ function getExtension(url) {
 
 function getFilename (urlOrFile) {
 
-    if (urlOrFile instanceof File) {
-        return urlOrFile.name;
+    if (urlOrFile.name !== undefined) {
+        return urlOrFile.name
     } else if (isString(urlOrFile)){
 
         let index = urlOrFile.lastIndexOf("/");
@@ -58,7 +58,7 @@ function getFilename (urlOrFile) {
 
 async function getFilenameExtended (path) {
 
-    if (path instanceof File) {
+    if (isFile(path)) {
         return path.name
     } else if (isGoogleDriveURL(path)) {
         if(typeof gapi === "undefined") {
@@ -73,10 +73,19 @@ async function getFilenameExtended (path) {
 
 }
 
-function isFilePath (path) {
-    return (path instanceof File);
+/**
+ * Test if object is a File or File-like object.
+ *
+ * @param object
+ */
+function isFile(object) {
+    if(!object) {
+        return false;
+    }
+    return typeof object !== 'function' &&
+        (object instanceof File ||
+            (object.hasOwnProperty("name") && typeof object.slice === 'function' && typeof object.arrayBuffer === 'function'))
 }
-
 
 function download  (filename, data) {
 
@@ -89,4 +98,4 @@ function download  (filename, data) {
     document.body.removeChild(element);
 }
 
-export {getExtension, getFilename, getFilenameExtended, isFilePath, download}
+export {getExtension, getFilename, getFilenameExtended, isFile, download}

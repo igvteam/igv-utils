@@ -59,7 +59,7 @@ const igvxhr = {
         if (!options.responseType) {
             options.responseType = "arraybuffer";
         }
-        if (url instanceof File) {
+        if (FileUtils.isFile(url)) {
             return loadFileSlice(url, options);
         } else {
             return load(url, options);
@@ -82,7 +82,7 @@ const igvxhr = {
 
     loadString: async function (path, options) {
         options = options || {};
-        if (path instanceof File) {
+        if (FileUtils.isFile(path )) {
             return loadStringFromFile(path, options);
         } else {
             return loadStringFromUrl(path, options);
@@ -98,7 +98,7 @@ async function load(url, options) {
     // Resolve functions, promises, and functions that return promises
     url = await (typeof url === 'function' ? url() : url);
 
-    if (url instanceof File) {
+    if (FileUtils.isFile(url)) {
         return loadFileSlice(url, options);
     } else if (typeof url.startsWith === 'function') {   // Test for string
         if (url.startsWith("data:")) {
