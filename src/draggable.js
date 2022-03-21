@@ -9,8 +9,12 @@ import * as DOMUtils from './dom-utils.js'
 
 let dragData;   // Its assumed we are only dragging one element at a time.
 
+let bbox = undefined
 
-function makeDraggable(target, handle) {
+function makeDraggable(target, handle, constraint) {
+    if (constraint) {
+        bbox = Object.assign({}, constraint)
+    }
     handle.addEventListener('mousedown', dragStart.bind(target));
 }
 
@@ -53,8 +57,13 @@ function drag(event) {
     event.preventDefault();
     const dx = event.screenX - dragData.screenX;
     const dy = event.screenY - dragData.screenY;
-    this.style.left = `${dragData.left + dx}px`;
-    this.style.top = `${dragData.top + dy}px`;
+
+    // const left = bbox ? Math.max(bbox.minX, dragData.left + dx) : dragData.left + dx
+    const left = dragData.left + dx
+    const  top = bbox ? Math.max(bbox.minY, dragData.top  + dy) : dragData.top  + dy
+
+    this.style.left = `${ left }px`
+    this.style.top  = `${  top }px`
 }
 
 function dragEnd(event) {
