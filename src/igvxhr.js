@@ -164,7 +164,7 @@ async function loadURL(url, options) {
         const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
         const isSafari = navigator.vendor.indexOf("Apple") === 0 && /\sSafari\//.test(navigator.userAgent);
 
-        if (range && isChrome && !isAmazonV4Signed(url)) {
+        if (range && isChrome && !isAmazonV4Signed(url) && !isGoogleStorageSigned(url)) {
             // Hack to prevent caching for byte-ranges. Attempt to fix net:err-cache errors in Chrome
             url += url.includes("?") ? "&" : "?";
             url += "someRandomSeed=" + Math.random().toString(36);
@@ -372,6 +372,10 @@ async function loadStringFromUrl(url, options) {
 
 function isAmazonV4Signed(url) {
     return url.indexOf("X-Amz-Signature") > -1;
+}
+
+function isGoogleStorageSigned(url) {
+    return url.indexOf("X-Goog-Signature") > -1;
 }
 
 function getOauthToken(url) {
