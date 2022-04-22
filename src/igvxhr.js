@@ -140,7 +140,7 @@ async function loadURL(url, options) {
     return new Promise(function (resolve, reject) {
 
         // Various Google tansformations
-        if (GoogleUtils.isGoogleURL(url)) {
+        if (GoogleUtils.isGoogleURL(url) && !isGoogleStorageSigned(url)) {
             if (GoogleUtils.isGoogleStorageURL(url)) {
                 url = GoogleUtils.translateGoogleCloudURL(url);
             }
