@@ -16,7 +16,8 @@ class File {
 
     //var newBlob = blob.slice(start, end, contentType);
     slice(start, end, contentType) {
-        return this.buffer.slice(start, end);
+        const bufferSlice =  this.buffer.slice(start, end);
+        return new File(bufferSlice, this.name)
     }
 
     async arrayBuffer() {
