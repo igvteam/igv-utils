@@ -161,14 +161,14 @@ async function loadURL(url, options) {
             addOauthHeaders(headers, oauthToken)
         }
         const range = options.range
-        const isChrome = navigator.userAgent.indexOf('Chrome') > -1
-        const isSafari = navigator.vendor.indexOf("Apple") === 0 && /\sSafari\//.test(navigator.userAgent)
 
-        if (range && isChrome && !isAmazonV4Signed(url) && !isGoogleStorageSigned(url)) {
-            // Hack to prevent caching for byte-ranges. Attempt to fix net:err-cache errors in Chrome
-            url += url.includes("?") ? "&" : "?"
-            url += "someRandomSeed=" + Math.random().toString(36)
-        }
+        // const isChrome = navigator.userAgent.indexOf('Chrome') > -1
+        // const isSafari = navigator.vendor.indexOf("Apple") === 0 && /\sSafari\//.test(navigator.userAgent)
+        // if (range && isChrome && !isAmazonV4Signed(url) && !isGoogleStorageSigned(url)) {
+        //     // Hack to prevent caching for byte-ranges. Attempt to fix net:err-cache errors in Chrome
+        //     url += url.includes("?") ? "&" : "?"
+        //     url += "someRandomSeed=" + Math.random().toString(36)
+        // }
 
         const xhr = new XMLHttpRequest()
         const sendData = options.sendData || options.body
