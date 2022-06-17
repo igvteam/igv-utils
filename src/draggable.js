@@ -5,52 +5,43 @@
 
  */
 
-import * as DOMUtils from './dom-utils.js'
-
-let dragData;   // Its assumed we are only dragging one element at a time.
-
-let bbox = undefined
+let dragData;  // Its assumed we are only dragging one element at a time.
 
 function makeDraggable(target, handle, constraint) {
-    if (constraint) {
-        bbox = Object.assign({}, constraint)
+
+    handle.addEventListener('mousedown', dragStart.bind(target))
+
+    function dragStart(event) {
+
+        event.stopPropagation()
+        event.preventDefault()
+
+        const dragFunction = drag.bind(this);
+        const dragEndFunction = dragEnd.bind(this);
+        const computedStyle = getComputedStyle(this);
+
+        dragData =
+            {
+                constraint,
+                dragFunction,
+                dragEndFunction,
+                screenX: event.screenX,
+                screenY: event.screenY,
+                top: parseInt(computedStyle.top.replace("px", "")),
+                left: parseInt(computedStyle.left.replace("px", ""))
+            };
+
+        document.addEventListener('mousemove', dragFunction);
+        document.addEventListener('mouseup', dragEndFunction);
+        document.addEventListener('mouseleave', dragEndFunction);
+        document.addEventListener('mouseexit', dragEndFunction);
     }
-    handle.addEventListener('mousedown', dragStart.bind(target));
-}
-
-
-function dragStart(event) {
-
-    event.stopPropagation();
-    event.preventDefault();
-
-    const pageCoords = DOMUtils.offset(this);
-    const dragFunction = drag.bind(this);
-    const dragEndFunction = dragEnd.bind(this);
-    const computedStyle = getComputedStyle(this);
-    const top = parseInt(computedStyle.top.replace("px", ""));
-    const left = parseInt(computedStyle.left.replace("px", ""));
-
-    dragData =
-        {
-            dragFunction: dragFunction,
-            dragEndFunction: dragEndFunction,
-            screenX: event.screenX,
-            screenY: event.screenY,
-            top: top,
-            left: left
-        };
-
-    document.addEventListener('mousemove', dragFunction);
-    document.addEventListener('mouseup', dragEndFunction);
-    document.addEventListener('mouseleave', dragEndFunction);
-    document.addEventListener('mouseexit', dragEndFunction);
 }
 
 function drag(event) {
 
     if (!dragData) {
-        console.log("No drag data!");
+        console.error("No drag data!");
         return;
     }
     event.stopPropagation();
@@ -58,9 +49,8 @@ function drag(event) {
     const dx = event.screenX - dragData.screenX;
     const dy = event.screenY - dragData.screenY;
 
-    // const left = bbox ? Math.max(bbox.minX, dragData.left + dx) : dragData.left + dx
     const left = dragData.left + dx
-    const  top = bbox ? Math.max(bbox.minY, dragData.top  + dy) : dragData.top  + dy
+    const  top = dragData.constraint ? Math.max(dragData.constraint.minY, dragData.top  + dy) : dragData.top  + dy
 
     this.style.left = `${ left }px`
     this.style.top  = `${  top }px`
@@ -69,7 +59,7 @@ function drag(event) {
 function dragEnd(event) {
 
     if (!dragData) {
-        console.log("No drag data!");
+        console.error("No drag data!");
         return;
     }
     event.stopPropagation();
