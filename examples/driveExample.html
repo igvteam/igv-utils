@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Drive Example</title>
+
+    <!-- Google Platform JS -->
+    <script src="https://apis.google.com/src/platform.js"></script>
+
+    <!-- OAUTH client -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+</head>
+
+<body>
+
+<div>
+    <h1>Google Drive Example</h1>
+</div>
+
+<p>
+View javascript console for button responses.
+</p>
+
+<button id="signInButton">Sign In</button>
+<br><br>
+<button id="driveInfoButton">Get drive info</button>
+<br><br>
+<button id="driveFileInfoButton">Get public file info</button>
+<br><br>
+<button id="drivePrivateFileInfoButton">Get private file info</button>
+<br><br>
+
+<script type="module">
+
+    import * as GoogleAuth from '../src/google/googleAuth.js'
+    import * as GoogleDrive from '../src/google/googleDrive.js'
+
+    //import oauthConfig from './oauthConfig.js'
+    import oauthConfig from './oauthConfig-private.js'
+
+    GoogleAuth.init(oauthConfig)
+
+    document.getElementById("signInButton").addEventListener("click", async () => {
+        const responseToken = await GoogleAuth.signIn()
+        console.log(responseToken)
+    })
+
+
+    document.getElementById("driveInfoButton").addEventListener("click", async () => {
+        const json = await GoogleDrive.getDriveInfo()
+        console.log(json)
+    })
+
+    document.getElementById("driveFileInfoButton").addEventListener("click", async () => {
+        // public
+        const url = "https://drive.google.com/file/d/1VHkNjxyj9FaNSkqSSZBlo-hgw8FnW-sM/view?usp=sharing";
+        const json = await GoogleDrive.getDriveFileInfo(url)
+        console.log(json)
+    })
+
+    document.getElementById("drivePrivateFileInfoButton").addEventListener("click", async () => {
+        const url = "https://drive.google.com/file/d/1ykwWzwiUhvffDQrjGhM2P-B6EmQBi1Dt/view?usp=sharing";
+        const json = await GoogleDrive.getDriveFileInfo(url)
+        console.log(json)
+    })
+
+
+</script>
+
+
+</body>
+
+</html>

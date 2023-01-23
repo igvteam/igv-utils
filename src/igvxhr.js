@@ -362,8 +362,8 @@ function getOauthToken(url) {
 async function fetchGoogleAccessToken(url) {
     if (GoogleAuth.isInitialized()) {
         const scope = GoogleAuth.getScopeForURL(url)
-        const googleToken = await GoogleAuth.getAccessToken(scope)
-        return googleToken ? googleToken.access_token : undefined
+        const tokenResponse = await GoogleAuth.getAccessToken(scope)
+        return tokenResponse ? tokenResponse.access_token : undefined
     } else {
         throw Error(
             `Authorization is required, but Google oAuth has not been initalized. Contact your site administrator for assistance.`)

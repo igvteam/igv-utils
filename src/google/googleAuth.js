@@ -1,102 +1,40 @@
 // Convenience functions for the gapi oAuth library.
-// This wrapper is stateless -- this is important as multiple copies of igv-utils might be present
+// This wrapper is stateless -- this is important as multiple copies of this module might be present
 // in an application.  All state is held in the gapi library itself.
 
 import {isGoogleDriveURL, isGoogleStorageURL} from "./googleUtils.js"
 
-const FIVE_MINUTES = 5 * 60 * 1000;
-
-async function load(library) {
-    return new Promise(function (resolve, reject) {
-        gapi.load(library, {
-            callback: resolve,
-            onerror: reject
-        });
-    })
-}
-
 async function init(config) {
 
+    if (!(google.accounts.oauth2.initTokenClient)) {
+        throw new Error("Google accounts token client not loaded (https://accounts.google.com/gsi/client)")
+    }
+
     if (isInitialized()) {
-        console.warn("oAuth has already been initialized");
-        return;
+        throw new Error("Google client is already initialized")
     }
 
-    gapi.apiKey = config.apiKey;
-
-    // copy config, gapi will modify it
-    const configCopy = Object.assign({}, config);
-    if (!configCopy.scope) {
-        configCopy.scope = 'profile'
+    // Note: callback is added when accessToken is requested
+    const codeClientConfig = {
+        client_id: config.client_id,
+        scope: config.scope || 'https://www.googleapis.com/auth/userinfo.profile',
+        state: config.state || 'igv',
+        error: (err) => {
+            throw new Error(err.type)
+        },
+        hint: config.hint,     // Optional
+        hosted_domain: config.hosted_domain  // Optional
     }
-    if (!config.client_id) {
-        config.client_id = config.clientId;
-    }
 
-    await load("auth2");
-    return new Promise(function (resolve, reject) {
-        gapi.auth2.init(configCopy).then(resolve, reject)
-    })
+    const tokenClient = google.accounts.oauth2.initTokenClient(codeClientConfig)
+    google.igv = {
+        tokenClient: tokenClient,
+        apiKey: config.apiKey
+    }
 }
 
 function isInitialized() {
-    return typeof gapi !== "undefined" && gapi.auth2 && gapi.auth2.getAuthInstance();
-}
-
-let inProgress = false;
-
-async function getAccessToken(scope) {
-
-    if (typeof gapi === "undefined") {
-        throw Error("Google authentication requires the 'gapi' library")
-    }
-    if (!gapi.auth2) {
-        throw Error("Google 'auth2' has not been initialized")
-    }
-
-    if (inProgress) {
-        return new Promise(function (resolve, reject) {
-            let intervalID;
-            const checkForToken = () => {    // Wait for inProgress to equal "false"
-                try {
-                    if (inProgress === false) {
-                        //console.log("Delayed resolution for " + scope);
-                        resolve(getAccessToken(scope));
-                        clearInterval(intervalID);
-                    }
-                } catch (e) {
-                    clearInterval(intervalID);
-                    reject(e);
-                }
-            }
-            intervalID = setInterval(checkForToken, 100);
-        })
-    } else {
-        inProgress = true;
-        try {
-            let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
-            let token;
-            if (currentUser.isSignedIn()) {
-                if (!currentUser.hasGrantedScopes(scope)) {
-                    await currentUser.grant({scope})
-                }
-                const {access_token, expires_at} = currentUser.getAuthResponse();
-                if (Date.now() < (expires_at - FIVE_MINUTES)) {
-                    token = {access_token, expires_at};
-                } else {
-                    const {access_token, expires_at} = currentUser.reloadAuthResponse();
-                    token = {access_token, expires_at};
-                }
-            } else {
-                currentUser = await signIn(scope);
-                const {access_token, expires_at} = currentUser.getAuthResponse();
-                token = {access_token, expires_at};
-            }
-            return token;
-        } finally {
-            inProgress = false;
-        }
-    }
+    return undefined !== google.igv
 }
 
 /**
@@ -106,43 +44,114 @@ async function getAccessToken(scope) {
  * @returns access_token || undefined
  */
 function getCurrentAccessToken() {
+    return (isInitialized() && google.igv.tokenResponse && Date.now() < google.igv.tokenExpiresAt) ?
+        google.igv.tokenResponse.access_token :
+        undefined
+}
 
-    let currentUser = gapi.auth2.getAuthInstance().currentUser.get();
-    if (currentUser && currentUser.isSignedIn()) {
-        const {access_token, expires_at} = currentUser.getAuthResponse();
-        return {access_token, expires_at};
+/**
+ * Return the of the currently logged in user, if any, as represented by the current access token.  This does not force a login.*
+ * @returns {Promise<any>}
+ */
+async function getCurrentUserProfile() {
+    const access_token = getCurrentAccessToken()
+    if(access_token) {
+        const endPoint = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+        const response = await fetch(endPoint, {
+            headers: {
+                'Authorization': `Bearer ${access_token}`
+            }
+        })
+        return response.json()
     } else {
-        return undefined;
+        return undefined
+    }
+}
+
+
+/**
+ * Return a promise for an access token for the given scope.  If the user hasn't authorized the scope request it
+ *
+ * @param scope
+ * @returns {Promise<unknown>}
+ */
+async function getAccessToken(scope) {
+
+    if (!isInitialized()) {
+        throw Error("Google oAuth has not been initialized")
     }
 
+    if (google.igv.tokenResponse &&
+        Date.now() < google.igv.tokenExpiresAt &&
+        google.accounts.oauth2.hasGrantedAllScopes(google.igv.tokenResponse, scope)) {
+        return google.igv.tokenResponse
+    } else {
+        const tokenClient = google.igv.tokenClient
+        return new Promise((resolve, reject) => {
+            try {
+                // Settle this promise in the response callback for requestAccessToken()
+                tokenClient.callback = (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        reject(tokenResponse)
+                    }
+                    google.igv.tokenResponse = tokenResponse
+                    google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
+                    resolve(tokenResponse)
+                }
+                tokenClient.requestAccessToken({scope})
+            } catch (err) {
+                console.log(err)
+            }
+        })
+    }
 }
 
 async function signIn(scope) {
 
-    const options = new gapi.auth2.SigninOptionsBuilder();
-    options.setPrompt('select_account');
-    options.setScope(scope);
-    return gapi.auth2.getAuthInstance().signIn(options)
+    if (!isInitialized()) {
+        throw Error("Google oAuth has not been initialized")
+    }
+
+    scope = scope || 'https://www.googleapis.com/auth/userinfo.profile'
+    await getAccessToken(scope)
+    return google.igv.tokenResponse
 }
 
 async function signOut() {
-    return gapi.auth2.getAuthInstance().signOut();
+
+    if (!isInitialized()) {
+        throw Error("Google oAuth has not been initialized")
+    }
+
+    if (google.igv && google.igv.tokenResponse) {
+        google.igv.tokenResponse = undefined
+    }
 }
 
 function getScopeForURL(url) {
     if (isGoogleDriveURL(url)) {
-        return "https://www.googleapis.com/auth/drive.file";
+        return "https://www.googleapis.com/auth/drive.file"
     } else if (isGoogleStorageURL(url)) {
-        return "https://www.googleapis.com/auth/devstorage.read_only";
+        return "https://www.googleapis.com/auth/devstorage.read_only"
     } else {
-        return 'https://www.googleapis.com/auth/userinfo.profile';
+        return 'https://www.googleapis.com/auth/userinfo.profile'
     }
 }
 
 function getApiKey() {
-    return gapi.apiKey;
+    return google.igv.apiKey
 }
 
 
-export {init, getAccessToken, getCurrentAccessToken, getScopeForURL, getApiKey, isInitialized, signIn, signOut}
+export {
+    init,
+    getAccessToken,
+    getCurrentAccessToken,
+    getScopeForURL,
+    getApiKey,
+    isInitialized,
+    signIn,
+    signOut,
+    getCurrentUserProfile
+}
 

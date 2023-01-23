@@ -5,79 +5,51 @@
     <title>Google Picker Example</title>
 
     <!-- Google Platform JS -->
-    <script src="https://apis.google.com/src/api.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
 
+    <script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
 
 <div>
-
     <h1>Google Picker Example</h1>
     <button id="google-picker" type="button">Google Picker</button>
-
 </div>
+<p>
+    View javascript console for button responses.
+</p>
 
 <script type="module">
 
     //   import {GoogleAuth, GooglePicker, GoogleUtils} from '../src/index.js';
-    import * as GoogleAuth from '../src/google/googleAuth.js';
-    import * as GooglePicker from '../src/google/googleFilePicker.js';
-    import * as GoogleUtils from '../src/google/googleUtils.js';
-    import oauthConfig from './oauthConfig-private.js';
+    import * as GoogleAuth from '../src/google/googleAuth.js'
+    import * as GooglePicker from '../src/google/googleFilePicker.js'
+    import * as GoogleDrive from '../src/google/googleDrive.js'
 
-    // Function wrapper to allow use of await
-    (async function () {
+    //import oauthConfig from './oauthConfig.js';
+    import oauthConfig from './oauthConfig-private.js'
 
-        await GoogleAuth.init(oauthConfig);
+    await GoogleAuth.init(oauthConfig)
 
-        document.getElementById("google-picker").onclick = () => {
-            GooglePicker.createDropdownButtonPicker(true, handlePick);
-        }
-
-
-    })()
-
-    function updateSignInStatus(signInStatus) {
-        console.log(signInStatus);
+    document.getElementById("google-picker").onclick = () => {
+        GooglePicker.createDropdownButtonPicker(true, handlePick)
     }
 
     async function handlePick(responses) {
 
-        const url = responses[0].url;
-        console.log(responses[0])
+        const url = responses[0].url
 
-        const downloadURL = GoogleUtils.driveDownloadURL(url);
-        const driveInfo = await GoogleUtils.getDriveFileInfo(url);
-        console.log(driveInfo);
-
-        downloadFile(downloadURL, logContents)
+        const downloadURL = GoogleDrive.getDriveDownloadURL(url)
+        const driveInfo = await GoogleDrive.getDriveFileInfo(url)
+        console.log(`responses: ${JSON.stringify(responses)}`)
+        console.log(`dowloadURL: ${downloadURL}`)
+        console.log(`driveInfo: ${JSON.stringify(driveInfo)}`)
 
     }
 
-    async function downloadFile(downloadUrl, callback) {
-        if (downloadUrl) {
-            //var accessToken = gapi.auth.getToken().access_token;
-            //const {accessToken} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
-            var xhr = new XMLHttpRequest();
-
-            //xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-            downloadUrl += "&key=" + oauthConfig.apiKey;
-            xhr.open('GET', downloadUrl);
-            xhr.setRequestHeader('Range', 'bytes=1-25')
-            xhr.onload = function () {
-                callback(xhr.responseText);
-            };
-            xhr.onerror = function () {
-                callback(null);
-            };
-            xhr.send();
-        } else {
-            callback(null);
-        }
-    }
 
     function logContents(txt) {
-        console.log(txt);
+        console.log(txt)
     }
 
 

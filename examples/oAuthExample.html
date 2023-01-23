@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Google Picker Example</title>
+    <title>Google Oauth Example</title>
 
-    <!-- Google Platform JS -->
-    <script src="https://apis.google.com/src/platform.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 
 </head>
 <body>
@@ -14,27 +13,65 @@
     <h1>Google Oauth Example</h1>
 </div>
 
+<h2>Google Identity Services Authorization Token model</h2>
+
+<p>
+    View javascript console for button responses.
+</p>
+
+
+<button id="signInButton">Sign In</button>
+<br><br>
+<button id="getUserProfileButton">Get user profile</button>
+<br><br>
+<button id="driveInfoButton">Get drive info</button>
+<br><br>
+<button id="driveFileInfoButton">Get file info</button>
+<br><br>
+<button id="signOutButton">Sign Out</button>
+<br><br>
+<button id="revokeButton">Revoke IGV access</button>
+
 <script type="module">
 
-    import * as GoogleAuth from '../src/google/googleAuth.js';
+    import * as GoogleAuth from '../src/google/googleAuth.js'
+    import * as GoogleDrive from '../src/google/googleDrive.js'
 
-    import oauthConfig from './oauthConfig.js';
+    //import oauthConfig from './oauthConfig.js'
+    import oauthConfig from './oauthConfig-private.js'
 
-    // Function wrapper to allow use of await
-    (async function () {
+    GoogleAuth.init(oauthConfig)
 
-        await GoogleAuth.init({
-            client_id: oauthConfig.client_id,
-            scope: 'https://www.googleapis.com/auth/userinfo.profile'
-        })
+    document.getElementById("signInButton").addEventListener("click", async () => {
+        const userProfile = await GoogleAuth.signIn()
+        console.log(userProfile)
+    })
 
-        const {access_token, expires_at} = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/userinfo.profile');
-        alert(access_token);
-        alert(expires_at);
+    document.getElementById("signOutButton").addEventListener("click", () => GoogleAuth.signOut())
 
-    })()
+    document.getElementById("getUserProfileButton").addEventListener("click", async () => {
+        const userProfile = await GoogleAuth.getCurrentUserProfile()
+        console.log(userProfile)
+    })
+
+    document.getElementById("driveInfoButton").addEventListener("click", async () => {
+        const json = await GoogleDrive.getDriveInfo()
+        console.log(json)
+    })
+
+    document.getElementById("driveFileInfoButton").addEventListener("click", async () => {
+        const json = await GoogleDrive.getDriveFileInfo('https://drive.google.com/open?id=14dGM9acAByia5JCIQBBq34RMGj-SL6HF&authuser=jrobinso%40cloud.ucsd.edu&usp=drive_fs')
+        console.log(json)
+    })
+
+
+    document.getElementById("revokeButton").addEventListener("click", async () => {
+        google.accounts.oauth2.revoke(GoogleAuth.getCurrentAccessToken())
+    })
+
 
 </script>
+
 
 </body>
 
