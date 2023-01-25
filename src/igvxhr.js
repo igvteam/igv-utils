@@ -422,7 +422,7 @@ function mapUrl(url) {
     if (url.includes("//www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com")
     } else if (url.includes("//drive.google.com")) {
-        return GoogleUtils.driveDownloadURL(url)
+        return GoogleDrive.getDriveDownloadURL(url)
     } else if (url.includes("//www.broadinstitute.org/igvdata")) {
         return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata")
     } else if (url.includes("//igvdata.broadinstitute.org")) {
