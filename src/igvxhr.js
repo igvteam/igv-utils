@@ -110,7 +110,7 @@ async function load(url, options) {
             }
         } else {
             if (url.startsWith("https://drive.google.com")) {
-                url = GoogleUtils.driveDownloadURL(url)
+                url = GoogleDrive.getDriveDownloadURL(url)
             }
             if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
                 return googleThrottle.add(async function () {
