@@ -4,6 +4,9 @@
 
 import {isGoogleDriveURL, isGoogleStorageURL} from "./googleUtils.js"
 
+let googleTokens
+let initialized = false
+
 async function init(config) {
 
     if (!(google.accounts.oauth2.initTokenClient)) {
@@ -27,14 +30,15 @@ async function init(config) {
     }
 
     const tokenClient = google.accounts.oauth2.initTokenClient(codeClientConfig)
-    google.igv = {
+    googleTokens = {
         tokenClient: tokenClient,
         apiKey: config.apiKey
     }
+    initialized = true
 }
 
 function isInitialized() {
-    return undefined !== google.igv
+    return initialized
 }
 
 /**
@@ -44,8 +48,8 @@ function isInitialized() {
  * @returns access_token || undefined
  */
 function getCurrentAccessToken() {
-    return (isInitialized() && google.igv.tokenResponse && Date.now() < google.igv.tokenExpiresAt) ?
-        google.igv.tokenResponse.access_token :
+    return (isInitialized() && googleTokens.tokenResponse && Date.now() < googleTokens.tokenExpiresAt) ?
+        googleTokens.tokenResponse.access_token :
         undefined
 }
 
@@ -81,12 +85,12 @@ async function getAccessToken(scope) {
         throw Error("Google oAuth has not been initialized")
     }
 
-    if (google.igv.tokenResponse &&
-        Date.now() < google.igv.tokenExpiresAt &&
-        google.accounts.oauth2.hasGrantedAllScopes(google.igv.tokenResponse, scope)) {
-        return google.igv.tokenResponse
+    if (googleTokens.tokenResponse &&
+        Date.now() < googleTokens.tokenExpiresAt &&
+        google.accounts.oauth2.hasGrantedAllScopes(googleTokens.tokenResponse, scope)) {
+        return googleTokens.tokenResponse
     } else {
-        const tokenClient = google.igv.tokenClient
+        const tokenClient = googleTokens.tokenClient
         return new Promise((resolve, reject) => {
             try {
                 // Settle this promise in the response callback for requestAccessToken()
@@ -94,8 +98,8 @@ async function getAccessToken(scope) {
                     if (tokenResponse.error !== undefined) {
                         reject(tokenResponse)
                     }
-                    google.igv.tokenResponse = tokenResponse
-                    google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
+                    googleTokens.tokenResponse = tokenResponse
+                    googleTokens.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
                     resolve(tokenResponse)
                 }
                 tokenClient.requestAccessToken({scope})
@@ -114,7 +118,7 @@ async function signIn(scope) {
 
     scope = scope || 'https://www.googleapis.com/auth/userinfo.profile'
     await getAccessToken(scope)
-    return google.igv.tokenResponse
+    return googleTokens.tokenResponse
 }
 
 async function signOut() {
@@ -123,8 +127,8 @@ async function signOut() {
         throw Error("Google oAuth has not been initialized")
     }
 
-    if (google.igv && google.igv.tokenResponse) {
-        google.igv.tokenResponse = undefined
+    if (googleTokens && googleTokens.tokenResponse) {
+        googleTokens.tokenResponse = undefined
     }
 }
 
@@ -139,7 +143,7 @@ function getScopeForURL(url) {
 }
 
 function getApiKey() {
-    return google.igv.apiKey
+    return googleTokens.apiKey
 }
 
 
