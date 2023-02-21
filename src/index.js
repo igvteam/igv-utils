@@ -1,6 +1,3 @@
-import * as Icon from './icons.js'
-import * as UIUtils from "./ui-utils.js"
-import * as DOMUtils from "./dom-utils.js"
 import * as StringUtils from './stringUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './uriUtils.js'
@@ -12,8 +9,7 @@ import * as GoogleDrive from './google/googleDrive.js';
 import * as BGZip from './bgzf.js';
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
-import makeDraggable from "./draggable.js"
-import {appleCrayonPalette, nucleotideColorComponents, nucleotideColors, PaletteColorTable} from './colorPalettes.js'
+
 import igvxhr from "./igvxhr.js"
 import oauth from "./oauth.js"
 import FeatureCache from "./featureCache.js"
@@ -26,14 +22,6 @@ export {
     URLShortener,
     FileUtils,
     URIUtils,
-    DOMUtils,
-    UIUtils,
-    Icon,
-    makeDraggable,
-    appleCrayonPalette,
-    nucleotideColorComponents,
-    nucleotideColors,
-    PaletteColorTable,
     GoogleUtils,
     GooglePicker,
     GoogleAuth,
