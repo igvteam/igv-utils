@@ -24,19 +24,14 @@
  */
 
 import oauth from "./oauth.js"
-import {ungzip, isgzipped, decodeDataURI} from './bgzf.js'
-import * as StringUtils from './stringUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './uriUtils.js'
-import * as GoogleUtils from './google/googleUtils.js'
-import * as GoogleAuth from './google/googleAuth.js'
-import * as GoogleDrive from './google/googleDrive.js'
+import {ungzip, isgzipped, decodeDataURI} from '../node_modules/bgzip/src/bgzf.js'
+import * as GoogleUtils from '../node_modules/google-utils/src/googleUtils.js'
+import * as GoogleAuth from '../node_modules/google-utils/src/googleAuth.js'
+import * as GoogleDrive from '../node_modules/google-utils/src/googleDrive.js'
 import Throttle from "./throttle.js"
 
-var NONE = 0
-var GZIP = 1
-var BGZF = 2
-var UNKNOWN = 3
 let RANGE_WARNING_GIVEN = false
 
 const googleThrottle = new Throttle({
@@ -362,8 +357,8 @@ function getOauthToken(url) {
 async function fetchGoogleAccessToken(url) {
     if (GoogleAuth.isInitialized()) {
         const scope = GoogleAuth.getScopeForURL(url)
-        const tokenResponse = await GoogleAuth.getAccessToken(scope)
-        return tokenResponse ? tokenResponse.access_token : undefined
+        const access_token = await GoogleAuth.getAccessToken(scope)
+        return access_token
     } else {
         throw Error(
             `Authorization is required, but Google oAuth has not been initalized. Contact your site administrator for assistance.`)
@@ -376,8 +371,8 @@ async function fetchGoogleAccessToken(url) {
  */
 function getCurrentGoogleAccessToken() {
     if (GoogleAuth.isInitialized()) {
-        const googleToken = GoogleAuth.getCurrentAccessToken()
-        return googleToken ? googleToken.access_token : undefined
+        const access_token = GoogleAuth.getCurrentAccessToken()
+        return access_token
     } else {
         return undefined
     }
@@ -505,19 +500,6 @@ function getGlobalObject() {
         return global
     } else {
         return window
-    }
-}
-
-async function getFilename(url) {
-    if (StringUtils.isString(url) && url.startsWith("https://drive.google.com")) {
-        // This will fail if Google API key is not defined
-        if (GoogleAuth.getApiKey() === undefined) {
-            throw Error("Google drive is referenced, but API key is not defined.  An API key is required for Google Drive access")
-        }
-        const json = await GoogleDrive.getDriveFileInfo(url)
-        return json.originalFileName || json.name
-    } else {
-        return FileUtils.getFilename(url)
     }
 }
 

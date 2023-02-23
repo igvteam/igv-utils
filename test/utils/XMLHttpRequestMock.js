@@ -4,7 +4,7 @@
 // support range header, responseType
 
 import {XMLHttpRequestLocal} from './XMLHttpRequestLocal.js';
-import {XMLHttpRequest} from 'w3c-xmlhttprequest'
+import {XMLHttpRequest} from './w3XMLHttpRequest.js'
 
 /**
  * Emulation of w3c XMLHttpRequest for local file paths -- useful for unit tests with no server.

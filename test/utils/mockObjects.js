@@ -7,6 +7,8 @@ import {File} from "./File.js"
 import {XMLHttpRequestMock} from "./XMLHttpRequestMock.js"
 import {Document, DOMImplementation} from "./Document.js";
 import {DOMParser} from "./DOMParser.js"
+import atob from 'atob'
+import btoa from 'btoa'
 
 global.document = new Document();
 
@@ -29,6 +31,6 @@ global.navigator = {
 
 global.DOMParser = DOMParser;
 
-global.atob = require('atob');
+global.atob = atob
 
-global.btoa = require('btoa')
+global.btoa = btoa

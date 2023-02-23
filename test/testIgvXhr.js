@@ -20,7 +20,7 @@ suite("testIgvXhr", function () {
     }
 
     test("test load", async function () {
-        const url = require.resolve("./data/misc/BufferedReaderTest.bin")
+        const url = "test/data/misc/BufferedReaderTest.bin"
         const data = await igvxhr.load(url,
             {
                 responseType: "arraybuffer",
@@ -30,7 +30,7 @@ suite("testIgvXhr", function () {
     })
 
     test("test load file slice", async function () {
-        const url = createFile(require.resolve("./data/misc/BufferedReaderTest.bin"))
+        const url = createFile("test/data/misc/BufferedReaderTest.bin")
         const data = await igvxhr.load(url,
             {
                 responseType: "arraybuffer",
@@ -41,7 +41,7 @@ suite("testIgvXhr", function () {
 
 
     test("test load binary string", async function () {
-        const url = require.resolve("./data/misc/NC_045512v2.fa")
+        const url = "test/data/misc/NC_045512v2.fa"
         const startByte = 13
         const byteCount = 4
         const expected = "ATTA"
@@ -55,7 +55,7 @@ suite("testIgvXhr", function () {
     })
 
     test("test load binary string - file slice", async function () {
-        const url = createFile(require.resolve("./data/misc/NC_045512v2.fa"))
+        const url = createFile("test/data/misc/NC_045512v2.fa")
         const startByte = 13
         const byteCount = 4
         const expected = "ATTA"
@@ -69,13 +69,13 @@ suite("testIgvXhr", function () {
     })
 
     test("test loadArrayBuffer", async function () {
-        const url = require.resolve("./data/misc/BufferedReaderTest.bin")
+        const url = "test/data/misc/BufferedReaderTest.bin"
         const data = await igvxhr.loadArrayBuffer(url, {})
         verifyBytes(data, assert)
     })
 
     test("test loadArrayBuffer slice", async function () {
-        const url = require.resolve("./data/misc/BufferedReaderTest.bin")
+        const url = "test/data/misc/BufferedReaderTest.bin"
         const data = await igvxhr.loadArrayBuffer(url,
             {
                 range: range
@@ -84,28 +84,28 @@ suite("testIgvXhr", function () {
     })
 
     test("test loadString", async function () {
-        const url = require.resolve("./data/json/example.json")
+        const url = "test/data/json/example.json"
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
     })
 
     test("test loadString from file", async function () {
-        const url = createFile(require.resolve("./data/json/example.json"))
+        const url = createFile("test/data/json/example.json")
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
     })
 
     test("test loadJson", async function () {
-        const url = require.resolve("./data/json/example.json")
+        const url = "test/data/json/example.json"
         const result = await igvxhr.loadJson(url, {})
         assert.ok(result)
         assert.ok(result.hasOwnProperty("employees"))
     })
 
     test("test loadString gzipped", async function () {
-        const url = require.resolve("./data/json/example.json.gz")
+        const url = "test/data/json/example.json.gz"
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
@@ -113,7 +113,7 @@ suite("testIgvXhr", function () {
     })
 
     test("test loadString bg-zipped", async function () {
-        const url = require.resolve("./data/json/example.json.bgz")
+        const url = "test/data/json/example.json.bgz"
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
@@ -123,20 +123,20 @@ suite("testIgvXhr", function () {
 
 
     test("test loadString dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/json/example.json"))
+        const url = fileToDataURL("test/data/json/example.json")
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
     })
 
     test("test loadArrayBuffer dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/misc/BufferedReaderTest.bin"))
+        const url = fileToDataURL("test/data/misc/BufferedReaderTest.bin")
         const data = await igvxhr.loadArrayBuffer(url, {})
         verifyBytes(data, assert)
     })
 
     test("test loadArrayBuffer slice dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/misc/BufferedReaderTest.bin"))
+        const url = fileToDataURL("test/data/misc/BufferedReaderTest.bin")
         const data = await igvxhr.loadArrayBuffer(url,
             {
                 range: range
@@ -146,21 +146,21 @@ suite("testIgvXhr", function () {
     })
 
     test("test loadJson dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/json/example.json"))
+        const url = fileToDataURL("test/data/json/example.json")
         const result = await igvxhr.loadJson(url, {})
         assert.ok(result)
         assert.ok(result.hasOwnProperty("employees"))
     })
 
     test("test loadString gzipped dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/json/example.json.gz"))
+        const url = fileToDataURL("test/data/json/example.json.gz")
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
     })
 
     test("test loadString bg-zipped dataURI", async function () {
-        const url = fileToDataURL(require.resolve("./data/json/example.json.bgz"))
+        const url = fileToDataURL("test/data/json/example.json.bgz")
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))

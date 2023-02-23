@@ -1,8 +1,8 @@
-require('btoa');
-import fs from 'fs';
+
+import fs from 'fs'
 
 async function fileToDataURL(file) {
-    const foo = fs.readFileSync(file);
+    const foo = fs.readFileSync(file)
     return "data:application/octet-stream;base64," + foo.toString('base64')
 }
 

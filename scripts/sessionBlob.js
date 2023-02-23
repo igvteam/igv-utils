@@ -2,7 +2,7 @@
 // Run from the command line with "esm" option
 //    node -r esm sessionBlob.js
 
-import * as BGZip from '../src/bgzf.js';
+import * as BGZip from '../node_modules/bgzip/src/bgzf.js';
 
 const session =         {
     "genome": "hg38",

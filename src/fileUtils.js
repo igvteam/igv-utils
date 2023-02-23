@@ -1,7 +1,4 @@
 import {isString} from "./stringUtils.js"
-import {isGoogleDriveURL} from "./google/googleUtils.js"
-import {getDriveFileInfo} from "./google/googleDrive.js"
-import {parseUri} from "./uriUtils.js"
 
 function getExtension(url) {
 
@@ -56,22 +53,6 @@ function getFilename(urlOrFile) {
     }
 }
 
-async function getFilenameExtended(path) {
-
-    if (isFile(path)) {
-        return path.name
-    } else if (isGoogleDriveURL(path)) {
-        if (typeof gapi === "undefined") {
-            throw Error(`Google initialization with API key is required to load Google urls (${path})`)
-        }
-        const info = await getDriveFileInfo(path)
-        return info.name || info.originalFileName
-    } else {
-        const result = parseUri(path)
-        return result.file
-    }
-
-}
 
 /**
  * Test if object is a File or File-like object.
@@ -100,4 +81,4 @@ function download(filename, data) {
     document.body.removeChild(element)
 }
 
-export {getExtension, getFilename, getFilenameExtended, isFilePath, isFile, download}
+export {getExtension, getFilename, isFilePath, isFile, download}
