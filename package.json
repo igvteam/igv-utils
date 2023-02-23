@@ -8,6 +8,7 @@
     "src/**"
   ],
   "scripts": {
+    "update-google": "node scripts/updateGoogleUtils.js",
     "test": "mocha -ui tdd "
   },
   "repository": {
@@ -28,10 +29,8 @@
     "btoa": "^1.2.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
-    "xmldom": "^0.5.0"
-  },
-  "dependencies": {
-    "bgzip": "github:igvteam/bgzip",
-    "google-utils": "github:igvteam/google-utils"
+    "xmldom": "^0.5.0",
+    "google-utils": "github:igvteam/google-utils",
+    "bgzip":  "github:igvteam/bgzip"
   }
 }

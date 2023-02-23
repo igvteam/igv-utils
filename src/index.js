@@ -2,6 +2,7 @@ import * as StringUtils from './stringUtils.js'
 import * as FileUtils from './fileUtils.js'
 import * as URIUtils from './uriUtils.js'
 import * as URLShortener from './urlShortener/urlShortener.js'
+import * as BGZip from './bgzf.js'
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
 
@@ -17,6 +18,7 @@ export {
     URLShortener,
     FileUtils,
     URIUtils,
+    BGZip,
     igvxhr,
     oauth,
     FeatureCache,
