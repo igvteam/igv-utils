@@ -1,5 +1,5 @@
 
-import {ungzip, gzip, deflateRaw, inflateRaw} from "./pako.esm.js"
+import {ungzip, gzip, deflateRaw, inflateRaw, inflate} from "./pako.esm.js"
 
 
 const FEXTRA = 4;  // gzip spec F.EXTRA flag
@@ -190,6 +190,15 @@ function decodeDataURI(dataURI, gzip) {
     }
 }
 
-
-export {unbgzf, bgzBlockSize, gzip, ungzip_blocks as ungzip, isgzipped, compressString, uncompressString, decodeDataURI};
-
+export {
+    unbgzf,
+    bgzBlockSize,
+    gzip,
+    ungzip_blocks as ungzip,
+    isgzipped,
+    compressString,
+    uncompressString,
+    decodeDataURI,
+    inflate,
+    inflateRaw
+}

@@ -54,7 +54,7 @@ class IGVXhr {
         if (isFile(url)) {
             return this._loadFileSlice(url, options)
         } else {
-            return this._load(url, options)
+            return this.load(url, options)
         }
     }
 
@@ -81,7 +81,7 @@ class IGVXhr {
         }
     }
 
-    async _load(url, options) {
+    async load(url, options) {
 
         options = options || {}
         const urlType = typeof url
@@ -313,7 +313,7 @@ class IGVXhr {
 
         options = options || {}
         options.responseType = "arraybuffer"
-        const data = await igvxhr.load(url, options)
+        const data = await this.load(url, options)
         return arrayBufferToString(data)
     }
 
