@@ -10,9 +10,9 @@ import oauth from "./oauth.js"
 import FeatureCache from "./featureCache.js"
 import FeatureUtils from "./featureUtils.js"
 
-import * as GoogleUtils from '../node_modules/google-utils/src/googleUtils.js'
-import * as GoogleAuth from '../node_modules/google-utils/src/googleAuth.js'
-import * as GoogleDrive from '../node_modules/google-utils/src/googleDrive.js'
+import * as GoogleUtils from './googleUtils.js'
+import * as GoogleAuth from './googleAuth.js'
+import * as GoogleDrive from './googleDrive.js'
 
 export {
     IGVColor,
