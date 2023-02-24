@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "update-google": "node scripts/updateGoogleUtils.js",
-    "test": "mocha -ui tdd "
+    "update-bgzip": "node scripts/updateBGZip.js",
+    "test": "mocha -ui tdd"
   },
   "repository": {
     "type": "git",
