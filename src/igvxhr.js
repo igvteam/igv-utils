@@ -105,7 +105,7 @@ class IGVXhr {
                     url = GoogleDrive.getDriveDownloadURL(url)
                 }
                 if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
-                    return this.googleThrottle.add(async function () {
+                    return this.googleThrottle.add(async () => {
                         return this._loadURL(url, options)
                     })
                 } else {
