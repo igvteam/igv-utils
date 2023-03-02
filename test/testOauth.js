@@ -1,5 +1,5 @@
 import "./utils/mockObjects.js"
-import oauth from "../src/oauth.js";
+import Oauth from "../src/oauth.js";
 import {assert} from 'chai';
 
 /**
@@ -10,14 +10,15 @@ import {assert} from 'chai';
 
 suite("testOauth", function () {
 
+    const oauth = new Oauth()
+
     test("Test google token", function () {
 
         oauth.setToken("foo");
-        assert.equal(oauth.google.access_token, "foo");
         assert.equal(oauth.getToken(), "foo");
 
         oauth.removeToken();
-        assert.ok(undefined === oauth.google.access_token);
+        assert.ok(undefined === oauth.getToken());
 
         // Legacy method
         // igv.setGoogleOauthToken("foo");

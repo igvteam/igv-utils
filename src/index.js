@@ -6,13 +6,8 @@ import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
 
 import igvxhr from "./igvxhr.js"
-import oauth from "./oauth.js"
 import FeatureCache from "./featureCache.js"
 import FeatureUtils from "./featureUtils.js"
-
-import * as GoogleUtils from './googleUtils.js'
-import * as GoogleAuth from './googleAuth.js'
-import * as GoogleDrive from './googleDrive.js'
 
 export {
     IGVColor,
@@ -22,12 +17,8 @@ export {
     URIUtils,
     BGZip,
     igvxhr,
-    oauth,
     FeatureCache,
-    FeatureUtils,
-    GoogleUtils,
-    GoogleAuth,
-    GoogleDrive
+    FeatureUtils
 }
 
 

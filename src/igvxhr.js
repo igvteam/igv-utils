@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 
-import oauth from "./oauth.js"
+import Oauth from "./oauth.js"
 import {isFile} from './fileUtils.js'
 import {parseUri} from './uriUtils.js'
 import {ungzip, isgzipped, decodeDataURI} from './bgzf.js'
@@ -40,6 +40,7 @@ class IGVXhr {
             requestsPerSecond: 8
         })
         this.RANGE_WARNING_GIVEN = false
+        this.oauth = new Oauth()
     }
 
     setApiKey(key) {
@@ -124,7 +125,7 @@ class IGVXhr {
 
         options = options || {}
 
-        let oauthToken = options.oauthToken || getOauthToken(url)
+        let oauthToken = options.oauthToken || this._getOauthToken(url)
         if (oauthToken) {
             oauthToken = await (typeof oauthToken === 'function' ? oauthToken() : oauthToken)
         }
@@ -317,6 +318,32 @@ class IGVXhr {
         return arrayBufferToString(data)
     }
 
+    /**
+     * Explicity set an oAuth token for use with given host.  If host is undefined token is used for google api access*
+     * @param token
+     * @param host
+     */
+    setOauthToken(token, host) {
+        this.oauth.setToken(token, host)
+    }
+
+    _getOauthToken(url) {
+
+        // Google is the default provider, don't try to parse host for google URLs
+        const host = GoogleUtils.isGoogleURL(url) ?
+            undefined :
+            parseUri(url).host
+        let token = this.oauth.getToken(host)
+        if (token) {
+            return token
+        } else if (host === undefined) {
+            const googleToken = getCurrentGoogleAccessToken()
+            if (googleToken && googleToken.expires_at > Date.now()) {
+                return googleToken.access_token
+            }
+        }
+    }
+
 }
 
 function isGoogleStorageSigned(url) {
@@ -329,7 +356,7 @@ function getOauthToken(url) {
     const host = GoogleUtils.isGoogleURL(url) ?
         undefined :
         parseUri(url).host
-    let token = oauth.getToken(host)
+    let token = this.oauth.getToken(host)
     if (token) {
         return token
     } else if (host === undefined) {

@@ -6,50 +6,47 @@
 
 const DEFAULT_HOST = "googleapis"
 
-const oauth = {
+class Oauth {
 
-    oauthTokens: {},
+    constructor() {
+        this.oauthTokens = {}
+    }
 
-    setToken: function (token, host) {
-        host = host || DEFAULT_HOST;
-        this.oauthTokens[host] = token;
-        if(host === DEFAULT_HOST) {
-            this.google.access_token = token;    // legacy support
-        }
-    },
 
-    getToken: function (host) {
-        host = host || DEFAULT_HOST;
-        let token;
+    setToken(token, host) {
+        host = host || DEFAULT_HOST
+        this.oauthTokens[host] = token
+    }
+
+    getToken(host) {
+        host = host || DEFAULT_HOST
+        let token
         for (let key of Object.keys(this.oauthTokens)) {
-            const regex = wildcardToRegExp(key);
+            const regex = wildcardToRegExp(key)
             if (regex.test(host)) {
-                token = this.oauthTokens[key];
-                break;
+                token = this.oauthTokens[key]
+                break
             }
         }
-        return token;
-    },
+        return token
+    }
 
-    removeToken: function (host) {
-        host = host || DEFAULT_HOST;
+    removeToken(host) {
+        host = host || DEFAULT_HOST
         for (let key of Object.keys(this.oauthTokens)) {
-            const regex = wildcardToRegExp(key);
+            const regex = wildcardToRegExp(key)
             if (regex.test(host)) {
-                this.oauthTokens[key] = undefined;
+                this.oauthTokens[key] = undefined
             }
-        }
-        if(host === DEFAULT_HOST) {
-            this.google.access_token = undefined;    // legacy support
-        }
-    },
-
-    // Special object for google -- legacy support
-    google: {
-        setToken: function (token) {
-            oauth.setToken(token);
         }
     }
+
+    // Special object for google -- legacy support
+    // google: {
+    //     setToken: function (token) {
+    //         oauth.setToken(token);
+    //     }
+    // }
 }
 
 
@@ -60,7 +57,7 @@ const oauth = {
  * credit https://gist.github.com/donmccurdy/6d073ce2c6f3951312dfa45da14a420f
  */
 function wildcardToRegExp(s) {
-    return new RegExp('^' + s.split(/\*+/).map(regExpEscape).join('.*') + '$');
+    return new RegExp('^' + s.split(/\*+/).map(regExpEscape).join('.*') + '$')
 }
 
 /**
@@ -69,7 +66,7 @@ function wildcardToRegExp(s) {
  * credit https://gist.github.com/donmccurdy/6d073ce2c6f3951312dfa45da14a420f
  */
 function regExpEscape(s) {
-    return s.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
+    return s.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
 }
 
-export default oauth;
+export default Oauth
