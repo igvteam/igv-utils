@@ -125,7 +125,7 @@ class IGVXhr {
 
         options = options || {}
 
-        let oauthToken = options.oauthToken || this._getOauthToken(url)
+        let oauthToken = options.oauthToken || this.getOauthToken(url)
         if (oauthToken) {
             oauthToken = await (typeof oauthToken === 'function' ? oauthToken() : oauthToken)
         }
@@ -327,7 +327,7 @@ class IGVXhr {
         this.oauth.setToken(token, host)
     }
 
-    _getOauthToken(url) {
+    getOauthToken(url) {
 
         // Google is the default provider, don't try to parse host for google URLs
         const host = GoogleUtils.isGoogleURL(url) ?
