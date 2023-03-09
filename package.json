@@ -1,6 +1,6 @@
 {
   "name": "igv-utils",
-  "version": "1.3.16",
+  "version": "1.4.0",
   "description": "Misc code shared by igvteam projects",
   "module": "src/index.js",
   "type": "module",
@@ -8,8 +8,6 @@
     "src/**"
   ],
   "scripts": {
-    "update-google": "node scripts/updateGoogleUtils.js",
-    "update-bgzip": "node scripts/updateBGZip.js",
     "test": "mocha -ui tdd"
   },
   "repository": {
@@ -30,8 +28,6 @@
     "btoa": "^1.2.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
-    "xmldom": "^0.5.0",
-    "google-utils": "github:igvteam/google-utils",
-    "bgzip":  "github:igvteam/bgzip"
+    "xmldom": "^0.5.0"
   }
 }
