@@ -36,7 +36,7 @@ async function init(config) {
 }
 
 function isInitialized() {
-    return undefined !== google.igv
+    return window.google && window.google.igv
 }
 
 /**
