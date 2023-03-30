@@ -1,5 +1,6 @@
 import "./utils/mockObjects.js"
 import igvxhr from "../src/igvxhr.js"
+import {mapUrl} from "../src/igvxhr.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
@@ -164,6 +165,28 @@ suite("testIgvXhr", function () {
         const result = await igvxhr.loadString(url, {})
         assert.ok(result)
         assert.ok(result.startsWith("{\"employees\""))
+    })
+
+    /**
+     * Test URL mappings
+     */
+    test("test url mappings", function () {
+
+        let u1 = "https://www.dropbox.com/foo"
+        let u2 = "https://dl.dropboxusercontent.com/foo"
+        assert.equal(mapUrl(u1), u2)
+
+         u1 = "https://www.broadinstitute.org/igvdata/foo"
+         u2 = "https://data.broadinstitute.org/igvdata/foo"
+        assert.equal(mapUrl(u1), u2)
+
+         u1 = "https://igvdata.broadinstitute.org/foo"
+         u2 = "https://s3.amazonaws.com/igv.broadinstitute.org/foo"
+        assert.equal(mapUrl(u1), u2)
+
+         u1 = "https://igv.genepattern.org/foo"
+         u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
+        assert.equal(mapUrl(u1), u2)
     })
 
 })

@@ -434,14 +434,16 @@ function addTeamDrive(url) {
  */
 function mapUrl(url) {
 
-    if (url.includes("//www.dropbox.com")) {
+    if (url.startsWith("https://www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com")
-    } else if (url.includes("//drive.google.com")) {
+    } else if (url.startsWith("https://drive.google.com")) {
         return GoogleDrive.getDriveDownloadURL(url)
     } else if (url.includes("//www.broadinstitute.org/igvdata")) {
         return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata")
     } else if (url.includes("//igvdata.broadinstitute.org")) {
-        return url.replace("//igvdata.broadinstitute.org", "https://dn7ywbm9isq8j.cloudfront.net")
+        return url.replace("//igvdata.broadinstitute.org", "//s3.amazonaws.com/igv.broadinstitute.org")
+    } else if (url.includes("//igv.genepattern.org")) {
+        return url.replace("//igv.genepattern.org", "//igv-genepattern-org.s3.amazonaws.com")
     } else if (url.startsWith("ftp://ftp.ncbi.nlm.nih.gov/geo")) {
         return url.replace("ftp://", "https://")
     } else {
@@ -526,4 +528,4 @@ function getGlobalObject() {
 const igvxhr = new IGVXhr()
 
 export default igvxhr
-export {arrayBufferToString}
+export {arrayBufferToString, mapUrl}
