@@ -120,6 +120,8 @@ class IGVXhr {
 
     async _loadURL(url, options) {
 
+        const self = this
+
         //console.log(`${Date.now()}   ${url}`)
         url = mapUrl(url)
 
@@ -209,7 +211,7 @@ class IGVXhr {
                         // For small files a range starting at 0 can return the whole file => 200
                         // Provide just the slice we asked for, throw out the rest quietly
                         // If file is large warn user
-                        if (xhr.response.length > 100000 && !this.RANGE_WARNING_GIVEN) {
+                        if (xhr.response.length > 100000 && !self.RANGE_WARNING_GIVEN) {
                             alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
                         }
                         resolve(xhr.response.slice(range.start, range.start + range.size))
@@ -237,24 +239,29 @@ class IGVXhr {
 
             xhr.onerror = function (event) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
-                    tryGoogleAuth()
+                    tryGoogleAuth();
+                } else {
+                    handleError("Error accessing resource: " + url + " Status: " + xhr.status);
                 }
-                handleError("Error accessing resource: " + url + " Status: " + xhr.status)
-            }
+            };
 
             xhr.ontimeout = function (event) {
-                handleError("Timed out")
-            }
+                handleError("Timed out");
+            };
 
             xhr.onabort = function (event) {
-                console.log("Aborted")
-                reject(event)
-            }
+                console.log("Aborted");
+                reject(event);
+            };
 
             try {
-                xhr.send(sendData)
+                xhr.send(sendData);
             } catch (e) {
-                reject(e)
+                if (GoogleUtils.isGoogleURL(url) && !options.retries) {
+                    tryGoogleAuth();
+                } else {
+                    handleError(e);
+                }
             }
 
 
@@ -271,7 +278,7 @@ class IGVXhr {
                     const accessToken = await fetchGoogleAccessToken(url)
                     options.retries = 1
                     options.oauthToken = accessToken
-                    const response = await this._load(url, options)
+                    const response = await self.load(url, options)
                     resolve(response)
                 } catch (e) {
                     if (e.error) {
