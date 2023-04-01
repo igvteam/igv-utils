@@ -8,6 +8,7 @@
     "src/**"
   ],
   "scripts": {
+    "postinstall": "node scripts/updateGoogleUtils.js",
     "test": "mocha -ui tdd"
   },
   "repository": {
@@ -28,9 +29,7 @@
     "btoa": "^1.2.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
-    "xmldom": "^0.5.0"
-  },
-  "peerDependencies": {
+    "xmldom": "^0.5.0",
     "google-utils": "github:igvteam/google-utils"
   }
 }
