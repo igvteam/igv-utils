@@ -27,9 +27,9 @@ import Oauth from "./oauth.js"
 import {isFile} from './fileUtils.js'
 import {parseUri} from './uriUtils.js'
 import {ungzip, isgzipped, decodeDataURI} from './bgzf.js'
-import * as GoogleUtils from './googleUtils.js'
-import * as GoogleAuth from './googleAuth.js'
-import * as GoogleDrive from './googleDrive.js'
+import * as GoogleUtils from '../node_modules/google-utils/src/googleUtils.js'
+import * as GoogleAuth from '../node_modules/google-utils/src/googleAuth.js'
+import * as GoogleDrive from '../node_modules/google-utils/src/googleDrive.js'
 import Throttle from "./throttle.js"
 
 class IGVXhr {
