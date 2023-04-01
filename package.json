@@ -8,7 +8,7 @@
     "src/**"
   ],
   "scripts": {
-    "postinstall": "node scripts/updateGoogleUtils.js",
+    "updateDeps": "node scripts/updateGoogleUtils.js",
     "test": "mocha -ui tdd"
   },
   "repository": {
