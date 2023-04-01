@@ -32,5 +32,8 @@
   },
   "dependencies": {
     "google-utils": "github:igvteam/google-utils"
-  }
+  },
+  "bundledDependencies": [
+    "google-utils"
+  ]
 }
