@@ -334,45 +334,40 @@ class IGVXhr {
         this.oauth.setToken(token, host)
     }
 
+    /**
+     * Return an oauth token for the URL if we have one.  This method does not force sign-in, and the token may
+     * or may not be valid.  Sign-in is triggered on request failure.
+     * *
+     * @param url
+     * @returns {*}
+     */
     getOauthToken(url) {
 
         // Google is the default provider, don't try to parse host for google URLs
         const host = GoogleUtils.isGoogleURL(url) ?
             undefined :
             parseUri(url).host
+
+        // First check the explicit settings (i.e. token set through the API)
         let token = this.oauth.getToken(host)
         if (token) {
             return token
         } else if (host === undefined) {
+            // Now try Google oauth tokens previously obtained.  This will return undefined if google oauth is not
+            // configured.
             const googleToken = getCurrentGoogleAccessToken()
             if (googleToken && googleToken.expires_at > Date.now()) {
                 return googleToken.access_token
             }
         }
     }
-
 }
 
 function isGoogleStorageSigned(url) {
     return url.indexOf("X-Goog-Signature") > -1
 }
 
-function getOauthToken(url) {
 
-    // Google is the default provider, don't try to parse host for google URLs
-    const host = GoogleUtils.isGoogleURL(url) ?
-        undefined :
-        parseUri(url).host
-    let token = this.oauth.getToken(host)
-    if (token) {
-        return token
-    } else if (host === undefined) {
-        const googleToken = getCurrentGoogleAccessToken()
-        if (googleToken && googleToken.expires_at > Date.now()) {
-            return googleToken.access_token
-        }
-    }
-}
 
 /**
  * Return a Google oAuth token, triggering a sign in if required.   This method should not be called until we know
