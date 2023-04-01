@@ -30,10 +30,7 @@
     "mocha": "^10.2.0",
     "xmldom": "^0.5.0"
   },
-  "dependencies": {
+  "peerDependencies": {
     "google-utils": "github:igvteam/google-utils"
-  },
-  "bundledDependencies": [
-    "google-utils"
-  ]
+  }
 }
