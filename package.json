@@ -30,6 +30,6 @@
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
     "xmldom": "^0.5.0",
-    "google-utils": "github:igvteam/google-utils"
+    "google-utils": "github:igvteam/google-utils#v1.0.2"
   }
 }
