@@ -20,14 +20,16 @@ class XMLHttpRequestLocal {
         this.onabort = undefined;
         this.response = undefined;
         this.headers = new Map();
+        this.responseHeaders = new Map();
     }
 
     open(method, url) {
 
-        if ('GET' !== method) {
+        if ('POST' === method) {
             throw Error(method + " not supported");
         }
         this.path = url;
+        this.method = method
     }
 
     setRequestHeader(key, value) {
@@ -35,6 +37,17 @@ class XMLHttpRequestLocal {
     }
 
     send() {
+
+        if(this.method === 'HEAD') {
+            const stats = fs.statSync(this.path)
+            const fileSizeInBytes = stats.size
+            this.responseHeaders.set('content-length', fileSizeInBytes)
+            if (typeof this.onload === 'function') {
+                this.onload();
+                return
+            }
+        }
+
         let b;
         const rangeString = this.headers.get('range');
         if (rangeString && rangeString.startsWith('bytes=')) {
@@ -66,6 +79,11 @@ class XMLHttpRequestLocal {
 
     abort() {
         // Ignore
+    }
+
+    getResponseHeader(name) {
+        return this.responseHeaders.get(name.toLowerCase())
+
     }
 }
 

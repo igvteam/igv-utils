@@ -56,6 +56,14 @@ class XMLHttpRequestMock {
     abort() {
         this.impl.abort();
     }
+
+    getAllReponseHeaders() {
+        return this.impl.getAllResponseHeaders()
+    }
+
+    getResponseHeader(name) {
+        return this.impl.getResponseHeader(name)
+    }
 }
 
 export {XMLHttpRequestMock}
