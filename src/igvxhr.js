@@ -194,7 +194,7 @@ class IGVXhr {
                 if (range.size) {
                     rangeEnd = range.start + range.size - 1
                     if (contentLength > 0) {
-                        rangeEnd = Math.min(rangeEnd, contentLength)
+                        rangeEnd = Math.min(rangeEnd, contentLength - 1)
                     }
                 }
                 xhr.setRequestHeader("Range", "bytes=" + range.start + "-" + rangeEnd)
@@ -236,7 +236,6 @@ class IGVXhr {
                         if (xhr.response.length > 100000 && !self.RANGE_WARNING_GIVEN) {
                             alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
                         }
-                        console.log(xhr.response)
                         resolve(xhr.response.slice(range.start, range.start + range.size))
 
                     } else {
@@ -552,10 +551,6 @@ function getGlobalObject() {
 
 function isAmazonV4Signed(url) {
     return url.indexOf("X-Amz-Signature") > -1
-}
-
-function isGoogleStorageSigned(url) {
-    return url.indexOf("X-Goog-Signature") > -1
 }
 
 
