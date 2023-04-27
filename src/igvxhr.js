@@ -146,7 +146,7 @@ class IGVXhr {
         }
 
         let contentLength = -1
-        if (options.range) {
+        if (options.range && !isAmazonV4Signed(url) && !isGoogleStorageSigned(url)) {
             contentLength = await this.getContentLength(url)
         }
 
@@ -549,6 +549,15 @@ function getGlobalObject() {
         return window
     }
 }
+
+function isAmazonV4Signed(url) {
+    return url.indexOf("X-Amz-Signature") > -1
+}
+
+function isGoogleStorageSigned(url) {
+    return url.indexOf("X-Goog-Signature") > -1
+}
+
 
 const igvxhr = new IGVXhr()
 
