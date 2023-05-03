@@ -4,7 +4,6 @@ import {mapUrl} from "../src/igvxhr.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
-import {XMLHttpRequest} from './utils/w3XMLHttpRequest.js'
 
 suite("testIgvXhr", function () {
 
@@ -20,14 +19,6 @@ suite("testIgvXhr", function () {
             assert.equal(expectedValue, value)
         }
     }
-
-    test("test content-length", async function () {
-        this.timeout(10000)
-        const url = "https://s3.amazonaws.com/igv.org.test/data/uncompressed.bw"
-        const contentLength = await igvxhr.getContentLength(url, {})
-        assert.equal(contentLength, 81596201)
-
-    })
 
     test("test load", async function () {
         const url = "test/data/misc/BufferedReaderTest.bin"

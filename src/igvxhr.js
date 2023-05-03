@@ -41,7 +41,6 @@ class IGVXhr {
         })
         this.RANGE_WARNING_GIVEN = false
         this.oauth = new Oauth()
-        this.contentLengthMap = new Map()
     }
 
     setApiKey(key) {
@@ -119,18 +118,6 @@ class IGVXhr {
         }
     }
 
-    async getContentLength(url, options) {
-        if (!this.contentLengthMap.has(url)) {
-            options = options || {}
-            options.method = 'HEAD'
-            options.GET_CONTENT_LENGTH = true
-            const contentLengthString = await this._loadURL(url, options)
-            const contentLength = contentLengthString ? Number.parseInt(contentLengthString) : -1
-            this.contentLengthMap.set(url, contentLength)
-        }
-        return this.contentLengthMap.get(url)
-    }
-
     async _loadURL(url, options) {
 
         const self = this
@@ -143,11 +130,6 @@ class IGVXhr {
         let oauthToken = options.oauthToken || this.getOauthToken(url)
         if (oauthToken) {
             oauthToken = await (typeof oauthToken === 'function' ? oauthToken() : oauthToken)
-        }
-
-        let contentLength = -1
-        if (options.range && !isAmazonV4Signed(url) && !isGoogleStorageSigned(url)) {
-            contentLength = await this.getContentLength(url)
         }
 
         return new Promise(function (resolve, reject) {
@@ -190,13 +172,7 @@ class IGVXhr {
             }
 
             if (range) {
-                let rangeEnd = ""
-                if (range.size) {
-                    rangeEnd = range.start + range.size - 1
-                    if (contentLength > 0) {
-                        rangeEnd = Math.min(rangeEnd, contentLength - 1)
-                    }
-                }
+                var rangeEnd = range.size ? range.start + range.size - 1 : ""
                 xhr.setRequestHeader("Range", "bytes=" + range.start + "-" + rangeEnd)
                 //      xhr.setRequestHeader("Cache-Control", "no-cache");    <= This can cause CORS issues, disabled for now
             }
@@ -222,11 +198,6 @@ class IGVXhr {
             }
 
             xhr.onload = async function (event) {
-
-                if (options.GET_CONTENT_LENGTH) {
-                    resolve(xhr.getResponseHeader('content-length'))
-                }
-
                 // when the url points to a local file, the status is 0 but that is not an error
                 if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
                     if (range && xhr.status !== 206 && range.start !== 0) {
@@ -262,28 +233,28 @@ class IGVXhr {
 
             xhr.onerror = function (event) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
-                    tryGoogleAuth()
+                    tryGoogleAuth();
                 } else {
-                    handleError("Error accessing resource: " + url + " Status: " + xhr.status)
+                    handleError("Error accessing resource: " + url + " Status: " + xhr.status);
                 }
-            }
+            };
 
             xhr.ontimeout = function (event) {
-                handleError("Timed out")
-            }
+                handleError("Timed out");
+            };
 
             xhr.onabort = function (event) {
-                console.log("Aborted")
-                reject(event)
-            }
+                console.log("Aborted");
+                reject(event);
+            };
 
             try {
-                xhr.send(sendData)
+                xhr.send(sendData);
             } catch (e) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
-                    tryGoogleAuth()
+                    tryGoogleAuth();
                 } else {
-                    handleError(e)
+                    handleError(e);
                 }
             }
 
