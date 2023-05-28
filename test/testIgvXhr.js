@@ -167,6 +167,15 @@ suite("testIgvXhr", function () {
         assert.ok(result.startsWith("{\"employees\""))
     })
 
+    test("test getContentLength", async function () {
+
+        this.timeout(20000)
+        const url = "https://s3.amazonaws.com/igv.org.test/data/uncompressed.bw"
+        const contentLength = await igvxhr.getContentLength(url, {})
+        assert.equal(contentLength, 81596201)
+
+    })
+
     /**
      * Test URL mappings
      */

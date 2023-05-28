@@ -122,7 +122,6 @@ class IGVXhr {
 
         const self = this
 
-        //console.log(`${Date.now()}   ${url}`)
         url = mapUrl(url)
 
         options = options || {}
@@ -172,7 +171,10 @@ class IGVXhr {
             }
 
             if (range) {
-                var rangeEnd = range.size ? range.start + range.size - 1 : ""
+                let rangeEnd = ""
+                if (range.size) {
+                    rangeEnd = range.start + range.size - 1
+                }
                 xhr.setRequestHeader("Range", "bytes=" + range.start + "-" + rangeEnd)
                 //      xhr.setRequestHeader("Cache-Control", "no-cache");    <= This can cause CORS issues, disabled for now
             }
@@ -198,20 +200,28 @@ class IGVXhr {
             }
 
             xhr.onload = async function (event) {
-                // when the url points to a local file, the status is 0 but that is not an error
-                if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
-                    if (range && xhr.status !== 206 && range.start !== 0) {
-                        // For small files a range starting at 0 can return the whole file => 200
-                        // Provide just the slice we asked for, throw out the rest quietly
-                        // If file is large warn user
-                        if (xhr.response.length > 100000 && !self.RANGE_WARNING_GIVEN) {
-                            alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
-                        }
-                        resolve(xhr.response.slice(range.start, range.start + range.size))
 
+                // when the url points to a local file, the status is 0
+                if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
+                    if ("HEAD" === options.method) {
+                        resolve(parseResponseHeaders(xhr))
                     } else {
-                        resolve(xhr.response)
+                        // Assume "GET" or "POST"
+                        if (range && xhr.status !== 206 && range.start !== 0) {
+
+                            // For small files a range starting at 0 can return the whole file => 200
+                            // Provide just the slice we asked for, throw out the rest quietly
+                            // If file is large warn user
+                            if (xhr.response.length > 100000 && !self.RANGE_WARNING_GIVEN) {
+                                alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
+                            }
+                            resolve(xhr.response.slice(range.start, range.start + range.size))
+                        } else {
+                            resolve(xhr.response)
+                        }
                     }
+                } else if (xhr.status === 416) {
+                    handleError(Error(`416 Unsatisfiable Range`))
                 } else if ((typeof gapi !== "undefined") &&
                     ((xhr.status === 404 || xhr.status === 401 || xhr.status === 403) &&
                         GoogleUtils.isGoogleURL(url)) &&
@@ -221,9 +231,6 @@ class IGVXhr {
                 } else {
                     if (xhr.status === 403) {
                         handleError("Access forbidden: " + url)
-                    } else if (xhr.status === 416) {
-                        //  Tried to read off the end of the file.   This shouldn't happen, but if it does return an
-                        handleError("Unsatisfiable range")
                     } else {
                         handleError(xhr.status)
                     }
@@ -233,28 +240,28 @@ class IGVXhr {
 
             xhr.onerror = function (event) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
-                    tryGoogleAuth();
+                    tryGoogleAuth()
                 } else {
-                    handleError("Error accessing resource: " + url + " Status: " + xhr.status);
+                    handleError("Error accessing resource: " + url + " Status: " + xhr.status)
                 }
-            };
+            }
 
             xhr.ontimeout = function (event) {
-                handleError("Timed out");
-            };
+                handleError("Timed out")
+            }
 
             xhr.onabort = function (event) {
-                console.log("Aborted");
-                reject(event);
-            };
+                console.log("Aborted")
+                reject(event)
+            }
 
             try {
-                xhr.send(sendData);
+                xhr.send(sendData)
             } catch (e) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
-                    tryGoogleAuth();
+                    tryGoogleAuth()
                 } else {
-                    handleError(e);
+                    handleError(e)
                 }
             }
 
@@ -355,6 +362,23 @@ class IGVXhr {
             }
         }
     }
+
+    /**
+     * This method should only be called when it is known the server supports HEAD requests.  It is used to recover
+     * from 416 errors from out-of-spec WRT range request servers.  Notably Globus.
+     * * *
+     * @param url
+     * @param options
+     * @returns {Promise<unknown>}
+     */
+    async getContentLength(url, options) {
+        options = options || {}
+        options.method = 'HEAD'
+        const headerMap = await this._loadURL(url, options)
+        const contentLengthString = headerMap['content-length']
+        return contentLengthString ? Number.parseInt(contentLengthString) : 0
+    }
+
 }
 
 function isGoogleStorageSigned(url) {
@@ -421,6 +445,24 @@ function addTeamDrive(url) {
         const paramSeparator = url.includes("?") ? "&" : "?"
         url = url + paramSeparator + "supportsTeamDrive=true"
     }
+}
+
+function parseResponseHeaders(request) {
+    const headers = request.getAllReponseHeaders()
+
+    // Convert the header string into an array of individual headers
+    const arr = headers.trim().split(/[\r\n]+/)
+
+    // Create a map of header names to values
+    const headerMap = {}
+    for (let line of arr) {
+        const parts = line.split(": ")
+        const header = parts.shift()
+        const value = parts.join(": ")
+        headerMap[header] = value
+    }
+
+    return headerMap
 }
 
 /**
