@@ -204,7 +204,13 @@ class IGVXhr {
                 // when the url points to a local file, the status is 0
                 if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
                     if ("HEAD" === options.method) {
-                        resolve(parseResponseHeaders(xhr))
+                        // Support fetching specific headers.  Attempting to fetch all headers can be problematic with CORS
+                        const headers = options.requestedHeaders || ['content-length']
+                        const headerMap = {}
+                        for (let h of headers) {
+                            headerMap[h] = xhr.getResponseHeader(h)
+                        }
+                        resolve(headerMap)
                     } else {
                         // Assume "GET" or "POST"
                         if (range && xhr.status !== 206 && range.start !== 0) {
@@ -374,6 +380,7 @@ class IGVXhr {
     async getContentLength(url, options) {
         options = options || {}
         options.method = 'HEAD'
+        options.requestedHeaders = ['content-length']
         const headerMap = await this._loadURL(url, options)
         const contentLengthString = headerMap['content-length']
         return contentLengthString ? Number.parseInt(contentLengthString) : 0
@@ -447,8 +454,7 @@ function addTeamDrive(url) {
     }
 }
 
-function parseResponseHeaders(request) {
-    const headers = request.getAllReponseHeaders()
+function parseResponseHeaders(headers) {
 
     // Convert the header string into an array of individual headers
     const arr = headers.trim().split(/[\r\n]+/)
