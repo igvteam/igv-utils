@@ -121,6 +121,7 @@ class IGVXhr {
     async _loadURL(url, options) {
 
         const self = this
+        const _url = url   // The unmodified URL, needed in case of an oAuth retry
 
         url = mapUrl(url)
 
@@ -282,10 +283,10 @@ class IGVXhr {
 
             async function tryGoogleAuth() {
                 try {
-                    const accessToken = await fetchGoogleAccessToken(url)
+                    const accessToken = await fetchGoogleAccessToken(_url)
                     options.retries = 1
                     options.oauthToken = accessToken
-                    const response = await self.load(url, options)
+                    const response = await self.load(_url, options)
                     resolve(response)
                 } catch (e) {
                     if (e.error) {
