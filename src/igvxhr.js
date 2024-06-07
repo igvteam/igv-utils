@@ -59,6 +59,24 @@ class IGVXhr {
         }
     }
 
+    /**
+     * A wrapper around loadArrayBuffer that inflates gzipped data
+     * @param url
+     * @param options
+     * @returns {Promise<Uint8Array>}
+     */
+     async loadByteArray(url, options) {
+        const arraybuffer = await this.loadArrayBuffer(url, options)
+        let plain
+        if (isgzipped(arraybuffer)) {
+            plain = ungzip(arraybuffer)
+        } else {
+            plain = new Uint8Array(arraybuffer)
+        }
+        return plain
+    }
+
+
     async loadJson(url, options) {
         options = options || {}
         const method = options.method || (options.sendData ? "POST" : "GET")

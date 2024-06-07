@@ -120,6 +120,31 @@ suite("testIgvXhr", function () {
         assert.ok(result.startsWith("{\"employees\""))
     })
 
+    test("test loadByteArray", async function () {
+        const url = "test/data/json/example.json"
+        const data = await igvxhr.loadByteArray(url, {})
+        const result = (new TextDecoder()).decode(data)
+        assert.ok(result)
+        assert.ok(result.startsWith("{\"employees\""))
+    })
+
+    test("test loadByteArray gzipped", async function () {
+        const url = "test/data/json/example.json.gz"
+        const data = await igvxhr.loadByteArray(url, {})
+        const result = (new TextDecoder()).decode(data)
+        assert.ok(result)
+        assert.ok(result.startsWith("{\"employees\""))
+
+    })
+
+    test("test loadByteArray bg-zipped", async function () {
+        const url = "test/data/json/example.json.bgz"
+        const data = await igvxhr.loadByteArray(url, {})
+        const result = (new TextDecoder()).decode(data)
+        assert.ok(result)
+        assert.ok(result.startsWith("{\"employees\""))
+    })
+
     // Data URL tests follow
 
 
