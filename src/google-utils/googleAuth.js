@@ -16,7 +16,7 @@ async function init(config) {
 
     // Note: callback is added when accessToken is requested
     const codeClientConfig = {
-        client_id: config.client_id,
+        client_id: config.client_id || config.clientId,
         scope: config.scope || 'https://www.googleapis.com/auth/userinfo.profile',
         state: config.state || 'igv',
         error: (err) => {
@@ -152,7 +152,7 @@ function signInListen(fn) {
 
 function getScopeForURL(url) {
     if (isGoogleDriveURL(url)) {
-        return "https://www.googleapis.com/auth/drive.readonly"
+        return "https://www.googleapis.com/auth/drive.file"
     } else if (isGoogleStorageURL(url)) {
         return "https://www.googleapis.com/auth/devstorage.read_only"
     } else {
