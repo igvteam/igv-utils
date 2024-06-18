@@ -247,7 +247,7 @@ class IGVXhr {
                     }
                 } else if (xhr.status === 416) {
                     handleError(Error(`416 Unsatisfiable Range`))
-                } else if ((typeof gapi !== "undefined") &&
+                } else if (GoogleAuth.isInitialized() &&
                     ((xhr.status === 404 || xhr.status === 401 || xhr.status === 403) &&
                         GoogleUtils.isGoogleURL(url)) &&
                     !options.retries) {
