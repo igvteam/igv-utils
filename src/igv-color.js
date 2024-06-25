@@ -23,50 +23,50 @@
  * THE SOFTWARE.
  */
 
-import IGVMath from "./igv-math.js";
-import {stripQuotes} from "./stringUtils.js";
+import IGVMath from "./igv-math.js"
+import {stripQuotes} from "./stringUtils.js"
 
 function _random(min, max) {
-    return Math.random() * (max - min) + min;
+    return Math.random() * (max - min) + min
 }
 
 const IGVColor = {
 
     rgbListFromHSV: () => {
 
-        let s = 1;
-        let accumulation = [];
+        let s = 1
+        let accumulation = []
         for (let v = 1; v >= 0.5; v -= .1) {
             for (let h = 0; h < 1; h += 1 / 28) {
-                const r = "rgb(" + IGVColor.hsvToRgb(h, s, v).join(",") + ")";
-                accumulation.push(r);
+                const r = "rgb(" + IGVColor.hsvToRgb(h, s, v).join(",") + ")"
+                accumulation.push(r)
             }
         }
 
         // add black
-        accumulation.pop();
-        accumulation.push(IGVColor.rgbColor(16, 16, 16));
+        accumulation.pop()
+        accumulation.push(IGVColor.rgbColor(16, 16, 16))
 
-        return accumulation;
+        return accumulation
     },
 
     rgbToHex: function (rgb) {
-        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i)
         return (rgb && rgb.length === 4) ? "#" +
             ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
             ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
-            ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
+            ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : ''
     },
 
     hexToRgb: function (hex) {
 
-        var cooked = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        var cooked = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
 
         if (null === cooked) {
-            return undefined;
+            return undefined
         }
 
-        return "rgb(" + parseInt(cooked[1], 16) + "," + parseInt(cooked[2], 16) + "," + parseInt(cooked[3], 16) + ")";
+        return "rgb(" + parseInt(cooked[1], 16) + "," + parseInt(cooked[2], 16) + "," + parseInt(cooked[3], 16) + ")"
     },
 
     /**
@@ -83,36 +83,36 @@ const IGVColor = {
      * @return  Array   The RGB representation
      */
     hsvToRgb: function (h, s, v) {
-        var r, g, b;
+        var r, g, b
 
-        var i = Math.floor(h * 6);
-        var f = h * 6 - i;
-        var p = v * (1 - s);
-        var q = v * (1 - f * s);
-        var t = v * (1 - (1 - f) * s);
+        var i = Math.floor(h * 6)
+        var f = h * 6 - i
+        var p = v * (1 - s)
+        var q = v * (1 - f * s)
+        var t = v * (1 - (1 - f) * s)
 
         switch (i % 6) {
             case 0:
-                r = v, g = t, b = p;
-                break;
+                r = v, g = t, b = p
+                break
             case 1:
-                r = q, g = v, b = p;
-                break;
+                r = q, g = v, b = p
+                break
             case 2:
-                r = p, g = v, b = t;
-                break;
+                r = p, g = v, b = t
+                break
             case 3:
-                r = p, g = q, b = v;
-                break;
+                r = p, g = q, b = v
+                break
             case 4:
-                r = t, g = p, b = v;
-                break;
+                r = t, g = p, b = v
+                break
             case 5:
-                r = v, g = p, b = q;
-                break;
+                r = v, g = p, b = q
+                break
         }
 
-        return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+        return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)]
     },
 
     /**
@@ -129,148 +129,147 @@ const IGVColor = {
      * @return  Array   The RGB representation
      */
     hslToRgb: function (h, s, l) {
-        var r, g, b;
+        var r, g, b
 
         if (s === 0) {
-            r = g = b = l; // achromatic
+            r = g = b = l // achromatic
         } else {
 
 
-            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            var p = 2 * l - q;
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s
+            var p = 2 * l - q
 
-            r = IGVColor.hue2rgb(p, q, h + 1 / 3);
-            g = IGVColor.hue2rgb(p, q, h);
-            b = IGVColor.hue2rgb(p, q, h - 1 / 3);
+            r = IGVColor.hue2rgb(p, q, h + 1 / 3)
+            g = IGVColor.hue2rgb(p, q, h)
+            b = IGVColor.hue2rgb(p, q, h - 1 / 3)
         }
 
-        return [r * 255, g * 255, b * 255];
+        return [r * 255, g * 255, b * 255]
     },
 
     hue2rgb: (p, q, t) => {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1 / 6) return p + (q - p) * 6 * t;
-        if (t < 1 / 2) return q;
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-        return p;
+        if (t < 0) t += 1
+        if (t > 1) t -= 1
+        if (t < 1 / 6) return p + (q - p) * 6 * t
+        if (t < 1 / 2) return q
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+        return p
     },
 
     rgbaColor: function (r, g, b, a) {
 
-        r = IGVMath.clamp(r, 0, 255);
-        g = IGVMath.clamp(g, 0, 255);
-        b = IGVMath.clamp(b, 0, 255);
-        a = IGVMath.clamp(a, 0.0, 1.0);
+        r = IGVMath.clamp(r, 0, 255)
+        g = IGVMath.clamp(g, 0, 255)
+        b = IGVMath.clamp(b, 0, 255)
+        a = IGVMath.clamp(a, 0.0, 1.0)
 
-        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+        return "rgba(" + r + "," + g + "," + b + "," + a + ")"
     },
 
     rgbColor: function (r, g, b) {
 
-        r = IGVMath.clamp(r, 0, 255);
-        g = IGVMath.clamp(g, 0, 255);
-        b = IGVMath.clamp(b, 0, 255);
+        r = IGVMath.clamp(r, 0, 255)
+        g = IGVMath.clamp(g, 0, 255)
+        b = IGVMath.clamp(b, 0, 255)
 
-        return "rgb(" + r + "," + g + "," + b + ")";
+        return "rgb(" + r + "," + g + "," + b + ")"
     },
 
     greyScale: function (value) {
 
-        var grey = IGVMath.clamp(value, 0, 255);
+        var grey = IGVMath.clamp(value, 0, 255)
 
-        return "rgb(" + grey + "," + grey + "," + grey + ")";
+        return "rgb(" + grey + "," + grey + "," + grey + ")"
     },
 
     randomGrey: function (min, max) {
 
-        min = IGVMath.clamp(min, 0, 255);
-        max = IGVMath.clamp(max, 0, 255);
+        min = IGVMath.clamp(min, 0, 255)
+        max = IGVMath.clamp(max, 0, 255)
 
-        var g = Math.round(_random(min, max)).toString(10);
+        var g = Math.round(_random(min, max)).toString(10)
 
-        return "rgb(" + g + "," + g + "," + g + ")";
+        return "rgb(" + g + "," + g + "," + g + ")"
     },
 
     randomRGB: function (min, max) {
 
-        min = IGVMath.clamp(min, 0, 255);
-        max = IGVMath.clamp(max, 0, 255);
+        min = IGVMath.clamp(min, 0, 255)
+        max = IGVMath.clamp(max, 0, 255)
 
-        var r = Math.round(_random(min, max)).toString(10);
-        var g = Math.round(_random(min, max)).toString(10);
-        var b = Math.round(_random(min, max)).toString(10);
+        var r = Math.round(_random(min, max)).toString(10)
+        var g = Math.round(_random(min, max)).toString(10)
+        var b = Math.round(_random(min, max)).toString(10)
 
-        return "rgb(" + r + "," + g + "," + b + ")";
+        return "rgb(" + r + "," + g + "," + b + ")"
     },
 
     randomRGBConstantAlpha: function (min, max, alpha) {
 
-        min = IGVMath.clamp(min, 0, 255);
-        max = IGVMath.clamp(max, 0, 255);
+        min = IGVMath.clamp(min, 0, 255)
+        max = IGVMath.clamp(max, 0, 255)
 
-        var r = Math.round(_random(min, max)).toString(10);
-        var g = Math.round(_random(min, max)).toString(10);
-        var b = Math.round(_random(min, max)).toString(10);
+        var r = Math.round(_random(min, max)).toString(10)
+        var g = Math.round(_random(min, max)).toString(10)
+        var b = Math.round(_random(min, max)).toString(10)
 
-        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")"
     },
 
     addAlpha: function (color, alpha) {
 
-        if(color === "0" || color === ".") {
+        if (color === "0" || color === ".") {
             color = "rgb(0,0,0)"
         } else {
-            const c = this.colorNameToHex(color);
+            const c = this.colorNameToHex(color)
             if (c) {
-                color = c;
+                color = c
             }
         }
 
-        var isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
+        var isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color)
 
         if (color.startsWith("rgba")) {
-            const idx = color.lastIndexOf(",");
-            return color.substring(0, idx+1) + alpha.toString() + ")";
+            const idx = color.lastIndexOf(",")
+            return color.substring(0, idx + 1) + alpha.toString() + ")"
         }
 
         if (isHex) {
-            color = IGVColor.hexToRgb(color);
+            color = IGVColor.hexToRgb(color)
         }
 
         if (color.startsWith("rgb")) {
-            return color.replace("rgb", "rgba").replace(")", ", " + alpha + ")");
+            return color.replace("rgb", "rgba").replace(")", ", " + alpha + ")")
         } else {
-            console.log(color + " is not an rgb style string");
-            return color;
+            console.log(color + " is not an rgb style string")
+            return color
         }
     },
 
     rgbComponents: function (color) {
 
-        if(color === "0" || color === ".") {
-            return [0,0,0];
+        if (color === "0" || color === ".") {
+            return [0, 0, 0]
         }
-        const isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
+        const isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color)
         if (isHex) {
-            color = IGVColor.hexToRgb(color);
+            color = IGVColor.hexToRgb(color)
         } else {
-            if(!color.startsWith("rgb")) {
-                const hex = this.colorNameToHex(color);
-                color = this.hexToRgb(hex);
+            if (!color.startsWith("rgb")) {
+                const hex = this.colorNameToHex(color)
+                color = this.hexToRgb(hex)
             }
         }
 
         if (color.startsWith("rgb(")) {
-            return color.substring(4, color.length-1).split(",").map(s => Number.parseInt(s.trim()));
-         } else if (color.startsWith("rgba(")) {
-            return color.substring(5, color.length-1).split(",").map((s, i) => {
-                s = s.trim();
+            return color.substring(4, color.length - 1).split(",").map(s => Number.parseInt(s.trim()))
+        } else if (color.startsWith("rgba(")) {
+            return color.substring(5, color.length - 1).split(",").map((s, i) => {
+                s = s.trim()
                 return i === 3 ? Number.parseFloat(s) : Number.parseInt(s)
-            });
-        }
-        else {
-            throw Error("Unrecognized color string: color");
+            })
+        } else {
+            throw Error("Unrecognized color string: color")
         }
     },
 
@@ -285,41 +284,68 @@ const IGVColor = {
 
         var r = Math.floor(alpha * src[0] + (1 - alpha) * dest[0]),
             g = Math.floor(alpha * src[1] + (1 - alpha) * dest[1]),
-            b = Math.floor(alpha * src[2] + (1 - alpha) * dest[2]);
+            b = Math.floor(alpha * src[2] + (1 - alpha) * dest[2])
 
-        return "rgb(" + r + "," + g + "," + b + ")";
+        return "rgb(" + r + "," + g + "," + b + ")"
 
     },
 
-
+    /**
+     * Return a color represented by the string.  If the string is not a recognized color format return the
+     * string itself.  This function exists for backward compatibility,  createColorStringSafe is preferredz
+     * @param str
+     */
     createColorString: function (str) {
         // Excel will quote color strings, strip all quotes
-        str = stripQuotes(str);
+        const color = this.createColorStringSafe(str)
+        return color ? color : str
+    },
 
-        if (str.includes(",")) {
-            return str.startsWith("rgb") ? str : "rgb(" + str + ")";
-        } else {
-            return str;
+    /**
+     * If str is a recognized color format return a string encoding the color
+     * @param str
+     */
+    createColorStringSafe: function (str) {
+        // Excel will quote color strings, strip all quotes
+        str = stripQuotes(str)
+
+        if (str.startsWith('rgb(') && str.endsWith(')')) {
+            return str
+        }
+        if (str.startsWith('#') && str.length < 8) {
+            return str
+        }
+
+        // See if string is a recognized web color
+        const hex = this.colorNameToHex(str)
+        if (hex) {
+            return hex
+        }
+
+        // UCSC format (e.g.  0,0,255)
+        const tokens = str.split(",")
+        if (tokens.length === 3 && isColorComponent(tokens[0]) && isColorComponent(tokens[1]) && isColorComponent(tokens[2])) {
+            return `rgb(${str})`
         }
     },
 
     darkenLighten: function (color, amt) {
 
-        let src;
-        let hexColor = this.colorNameToHex(color);
-        if(hexColor) {
-            src  = IGVColor.hexToRgb(hexColor);
+        let src
+        let hexColor = this.colorNameToHex(color)
+        if (hexColor) {
+            src = IGVColor.hexToRgb(hexColor)
         } else {
-            src = color.startsWith('rgb(') ? color : IGVColor.hexToRgb(color);
+            src = color.startsWith('rgb(') ? color : IGVColor.hexToRgb(color)
         }
 
-        const components = src.replace(")", "").substring(4).split(",");
+        const components = src.replace(")", "").substring(4).split(",")
 
-        const r = Math.max(0, Math.min(255, Number.parseInt(components[0].trim()) + amt));
-        const g = Math.max(0, Math.min(255, Number.parseInt(components[1].trim()) + amt));
-        const b = Math.max(0, Math.min(255, Number.parseInt(components[2].trim()) + amt));
+        const r = Math.max(0, Math.min(255, Number.parseInt(components[0].trim()) + amt))
+        const g = Math.max(0, Math.min(255, Number.parseInt(components[1].trim()) + amt))
+        const b = Math.max(0, Math.min(255, Number.parseInt(components[2].trim()) + amt))
 
-        return 'rgb(' + r.toString() + ',' + g.toString() + ',' + b.toString() + ')';
+        return 'rgb(' + r.toString() + ',' + g.toString() + ',' + b.toString() + ')'
 
     },
 
@@ -477,10 +503,14 @@ const IGVColor = {
             "lightgray": "#d3d3d3",
             "lightslategrey": "#778899",
             "slategrey": "#708090"
-        };
-        return definedColorNames[colorName];
+        }
+        return definedColorNames[colorName]
     }
 }
 
+function isColorComponent(str) {
+    const num = Number.parseInt(str)
+    return !Number.isNaN(num) && num >= 0 && num <= 255
+}
 
-export default IGVColor;
+export default IGVColor
