@@ -48,6 +48,22 @@ class FeatureCache {
         return (this.range === undefined || this.range.contains(genomicRange.chr, genomicRange.start, genomicRange.end));
     }
 
+    /**
+     * Search loaded features
+     * @param fn
+     */
+    findFeatures(fn) {
+        const found = []
+        for(let featureList of Object.values(this.allFeatures)) {
+            for(let f of featureList) {
+                if(fn(f)) {
+                    found.push(f)
+                }
+            }
+        }
+        return found
+    }
+
     queryFeatures(chr, start, end) {
 
         const tree = this.treeMap[chr];
