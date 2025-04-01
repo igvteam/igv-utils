@@ -71,6 +71,7 @@ async function getCurrentUserProfile() {
 }
 
 
+let promise;
 /**
  * Return a promise for an access token for the given scope.  If the user hasn't authorized the scope request it
  *
@@ -89,22 +90,27 @@ async function getAccessToken(scope) {
         return google.igv.tokenResponse.access_token
     } else {
         const tokenClient = google.igv.tokenClient
-        return new Promise((resolve, reject) => {
-            try {
-                // Settle this promise in the response callback for requestAccessToken()
-                tokenClient.callback = (tokenResponse) => {
-                    if (tokenResponse.error !== undefined) {
-                        reject(tokenResponse)
+        if(!promise) {
+            promise = new Promise((resolve, reject) => {
+                try {
+                    // Settle this promise in the response callback for requestAccessToken()
+                    tokenClient.callback = (tokenResponse) => {
+                        if (tokenResponse.error !== undefined) {
+                            reject(tokenResponse)
+                        }
+                        google.igv.tokenResponse = tokenResponse
+                        google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
+                        console.log("Access token expires at " + new Date(google.igv.tokenExpiresAt))
+                        resolve(tokenResponse.access_token)
                     }
-                    google.igv.tokenResponse = tokenResponse
-                    google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
-                    resolve(tokenResponse.access_token)
+                    console.log("Requesting access token")
+                    tokenClient.requestAccessToken({scope})
+                } catch (err) {
+                    console.log(err)
                 }
-                tokenClient.requestAccessToken({scope})
-            } catch (err) {
-                console.log(err)
-            }
-        })
+            })
+        }
+        return promise
     }
 }
 
