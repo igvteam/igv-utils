@@ -194,10 +194,10 @@ suite("testIgvXhr", function () {
 
     test("test getContentLength", async function () {
 
-        this.timeout(20000)
-        const url = "https://s3.amazonaws.com/igv.org.test/data/uncompressed.bw"
+        this.timeout(10000)
+        const url = "https://raw.githubusercontent.com/igvteam/igv-genomes/refs/heads/main/data/gbk/NC_012920.1.gbk"
         const contentLength = await igvxhr.getContentLength(url, {})
-        assert.equal(contentLength, 81596201)
+        assert.equal(contentLength, 70549)
 
     })
 

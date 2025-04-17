@@ -389,20 +389,29 @@ class IGVXhr {
     }
 
     /**
-     * This method should only be called when it is known the server supports HEAD requests.  It is used to recover
-     * from 416 errors from out-of-spec WRT range request servers.  Notably Globus.
-     * * *
+     * Return the content length of the file at the given URL.  This is not guaranteed to succeed, some servers
+     * do not support or allow the content-length header.
+     *
      * @param url
      * @param options
      * @returns {Promise<unknown>}
      */
     async getContentLength(url, options) {
-        options = options || {}
-        options.method = 'HEAD'
-        options.requestedHeaders = ['content-length']
-        const headerMap = await this._loadURL(url, options)
-        const contentLengthString = headerMap['content-length']
-        return contentLengthString ? Number.parseInt(contentLengthString) : 0
+        if (isFile(url)) {
+            return url.size
+        } else {
+            try {
+                options = options || {}
+                options.method = 'HEAD'
+                options.requestedHeaders = ['content-length']
+                const headerMap = await this._loadURL(url, options)
+                const contentLengthString = headerMap['content-length']
+                return contentLengthString ? Number.parseInt(contentLengthString) : 0
+            } catch (e) {
+                console.error(e)
+                return -1
+            }
+        }
     }
 
 }
