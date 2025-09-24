@@ -4,6 +4,7 @@ import {mapUrl} from "../src/igvxhr.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
+import IGVXhr from "../src/igvxhr.js"
 
 suite("testIgvXhr", function () {
 
@@ -198,6 +199,24 @@ suite("testIgvXhr", function () {
         const url = "https://raw.githubusercontent.com/igvteam/igv-genomes/refs/heads/main/data/gbk/NC_012920.1.gbk"
         const contentLength = await igvxhr.getContentLength(url, {})
         assert.equal(contentLength, 70549)
+
+    })
+
+    test("test ucsc backup URL", async function () {
+
+        this.timeout(10000)
+
+        // Modify UCSC_HOST property to point to a non-existent host to force use of backup URL
+        const originalHost = igvxhr.UCSC_HOST
+        igvxhr.UCSC_HOST = "nonexistenthost.abc"
+
+        const range = {start: 0, size: 100}
+        const url = "https://" + igvxhr.UCSC_HOST + "/gbdb/hg38/knownGene.txt"
+        const result = await igvxhr.load(url, {range})
+        assert.ok(result.startsWith("ENST00000000233.10"))
+
+        // Restore original UCSC_HOST property
+        igvxhr.UCSC_HOST = originalHost
 
     })
 

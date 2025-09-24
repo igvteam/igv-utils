@@ -26,13 +26,18 @@
 import Oauth from "./oauth.js"
 import {isFile} from './fileUtils.js'
 import {parseUri} from './uriUtils.js'
-import {ungzip, isgzipped, decodeDataURI} from './bgzf.js'
+import {decodeDataURI, isgzipped, ungzip} from './bgzf.js'
 import * as GoogleUtils from './google-utils/googleUtils.js'
 import * as GoogleAuth from './google-utils/googleAuth.js'
 import * as GoogleDrive from './google-utils/googleDrive.js'
 import Throttle from "./throttle.js"
+import {StringUtils} from "./index.js"
 
 class IGVXhr {
+
+    UCSC_HOST = "hgdownload.soe.ucsc.edu"
+    UCSC_BACKUP_HOST = "genome-browser.s3.us-east-1.amazonaws.com"
+
 
     constructor() {
         this.apiKey = undefined
@@ -65,7 +70,7 @@ class IGVXhr {
      * @param options
      * @returns {Promise<Uint8Array>}
      */
-     async loadByteArray(url, options) {
+    async loadByteArray(url, options) {
         const arraybuffer = await this.loadArrayBuffer(url, options)
         let plain
         if (isgzipped(arraybuffer)) {
@@ -110,7 +115,7 @@ class IGVXhr {
 
         if (isFile(url)) {
             return this._loadFileSlice(url, options)
-        } else if (typeof url.startsWith === 'function') {   // Test for string
+        } else if (StringUtils.isString(url)) {
             if (url.startsWith("data:")) {
                 const buffer = decodeDataURI(url).buffer
                 if (options.range) {
@@ -140,6 +145,7 @@ class IGVXhr {
 
         const self = this
         const _url = url   // The unmodified URL, needed in case of an oAuth retry
+        const {host} = parseUri(_url)
 
         url = mapUrl(url)
 
@@ -220,8 +226,10 @@ class IGVXhr {
 
             xhr.onload = async function (event) {
 
+                const isFileProtocol = url.toLowerCase().startsWith("file:")
+
                 // when the url points to a local file, the status is 0
-                if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
+                if ((xhr.status >= 200 && xhr.status <= 300) || (isFileProtocol && xhr.status === 0)) {
                     if ("HEAD" === options.method) {
                         // Support fetching specific headers.  Attempting to fetch all headers can be problematic with CORS
                         const headers = options.requestedHeaders || ['content-length']
@@ -237,7 +245,7 @@ class IGVXhr {
                             // For small files a range starting at 0 can return the whole file => 200
                             // Provide just the slice we asked for, throw out the rest quietly
                             // If file is large warn user
-                            if (xhr.response.length > 100000 && !self.RANGE_WARNING_GIVEN) {
+                            if (xhr.response.length > 1000000 && !self.RANGE_WARNING_GIVEN) {
                                 alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
                             }
                             resolve(xhr.response.slice(range.start, range.start + range.size))
@@ -256,18 +264,21 @@ class IGVXhr {
                 } else {
                     if (xhr.status === 403) {
                         handleError("Access forbidden: " + url)
+                    } else if (host === self.UCSC_HOST) {
+                        tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, xhr.status)
                     } else {
-                        handleError(xhr.status)
+                        handleError(new Error(`Error accessing resource: ${url} status: ${xhr.status}`))
                     }
                 }
             }
 
-
             xhr.onerror = function (event) {
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
                     tryGoogleAuth()
+                } else if (host === self.UCSC_HOST) {
+                    tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, xhr.status)
                 } else {
-                    handleError("Error accessing resource: " + url + " Status: " + xhr.status)
+                    handleError(xhr.status)
                 }
             }
 
@@ -296,6 +307,16 @@ class IGVXhr {
                     reject(error)
                 } else {
                     throw error
+                }
+            }
+
+            async function tryUcscBackup(UCSC_HOST, UCSC_BACKUP_HOST, error) {
+                const backupUrl = _url.replace(UCSC_HOST, UCSC_BACKUP_HOST)
+                try {
+                    const result = await self._loadURL(backupUrl, options)
+                    resolve(result)
+                } catch (e) {
+                    handleError(error)
                 }
             }
 
@@ -598,6 +619,34 @@ function getGlobalObject() {
 
 function isAmazonV4Signed(url) {
     return url.indexOf("X-Amz-Signature") > -1
+}
+
+let mappings
+
+const mappingURL = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/data/url_mappings.tsv"
+
+async function convert(url) {
+
+    if (!mappings) {
+        mappings = new Map()
+
+        try {
+            const data = await igvxhr.loadString(mappingURL)
+            const lines = data.split("\n")
+            for (line of lines) {
+                if (line.startsWith("#")) continue
+
+                const tokens = line.split('\t')
+                if (tokens.length === 2) {
+                    mappings.set(tokens[0], tokens[1])
+                }
+            }
+        } catch (e) {
+            console.error(`Error loading url mappings`, e)
+        }
+    }
+
+    return mappings.has(url) ? mappings.get(url) : url
 }
 
 
