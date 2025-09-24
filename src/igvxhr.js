@@ -46,6 +46,7 @@ class IGVXhr {
         })
         this.RANGE_WARNING_GIVEN = false
         this.oauth = new Oauth()
+        this.corsProxy = undefined
     }
 
     setApiKey(key) {
@@ -262,23 +263,29 @@ class IGVXhr {
                     tryGoogleAuth()
 
                 } else {
+                    const error = new Error(`Error accessing resource: ${url} status: ${xhr.status}`)
                     if (xhr.status === 403) {
                         handleError("Access forbidden: " + url)
                     } else if (host === self.UCSC_HOST) {
-                        tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, xhr.status)
+                        tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, error)
+                    } else if (xhr.status === 0 && self.corsProxy && !options.corsProxyRetried) {
+                        tryCorsProxy(error)
                     } else {
-                        handleError(new Error(`Error accessing resource: ${url} status: ${xhr.status}`))
+                        handleError(error)
                     }
                 }
             }
 
             xhr.onerror = function (event) {
+                const error = new Error(`Error accessing resource: ${url} status: ${xhr.status}`)
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
                     tryGoogleAuth()
                 } else if (host === self.UCSC_HOST) {
-                    tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, xhr.status)
+                    tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, error)
+                } else if (self.corsProxy && !options.corsProxyRetried) {
+                    tryCorsProxy(error)
                 } else {
-                    handleError(xhr.status)
+                    handleError(error)
                 }
             }
 
@@ -310,6 +317,17 @@ class IGVXhr {
                 }
             }
 
+            async function tryCorsProxy(error) {
+                options.corsProxyRetried = true
+                const proxyUrl = self.corsProxy + (_url.includes("?") ? "&" : "?") + "url=" + encodeURIComponent(_url)
+                try {
+                    const result = await self._loadURL(proxyUrl, options)
+                    resolve(result)
+                } catch (e) {
+                    handleError(error)
+                }
+            }
+
             async function tryUcscBackup(UCSC_HOST, UCSC_BACKUP_HOST, error) {
                 const backupUrl = _url.replace(UCSC_HOST, UCSC_BACKUP_HOST)
                 try {
@@ -338,6 +356,8 @@ class IGVXhr {
                     }
                 }
             }
+
+
         })
 
     }

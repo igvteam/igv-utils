@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<h1>CORS Test</h1>
+
+We are testing loading a range request from a bigBed file hosted on a different server that does not
+support CORS. This must be tested in a browser, node.js does not enforce CORS.
+
+<p>
+<h2>Hub test</h2>
+<pre>
+https://cotneyhub.research.chop.edu/hubs/HEART_HUB/hg19/ChromHMM/25_state/CS13_12690_25state.bigBed
+</pre>
+<p>
+<div id="result"></div>
+</p>
+</p>
+
+<p>
+<h2>UCSC test</h2>
+<pre>
+https://genome-browser.s3.us-east-1.amazonaws.com/gbdb/hg38/knownGene.txt
+</pre>
+<p>
+<div id="result2"></div>
+</p>
+</p>
+
+<button id="runButton">Run</button>
+
+
+<script type="module">
+
+    import igvxhr from "../src/igvxhr.js"
+
+    document.getElementById("runButton").addEventListener("click", async () => {
+        const range = {start: 0, size: 100}
+        const responseType = "arraybuffer"
+        igvxhr.corsProxy = "https://igv.org/services/igvProxy.php"
+        const url = "https://cotneyhub.research.chop.edu/hubs/HEART_HUB/hg19/ChromHMM/25_state/CS13_12690_25state.bigBed"
+        const url2 = "https://genome-browser.s3.us-east-1.amazonaws.com/gbdb/hg38/knownGene.txt"
+        try {
+            const result = await igvxhr.load(url, {range, responseType})
+            document.getElementById("result").innerHTML = "<b>Result: </b>Success, loaded " + result.byteLength + " bytes"
+        } catch (e) {
+            document.getElementById("result").innerHTML = "<b>Result: </b>Error: " + e.message
+        }
+
+        try {
+            const result2 = await igvxhr.load(url2, {range})
+            document.getElementById("result2").innerHTML = "<b>Result: </b>Success, loaded " + result2.length + " bytes"
+        } catch (e) {
+            document.getElementById("result2").innerHTML = "<b>Result: </b>Error: " + e.message
+        }
+    })
+
+</script>
+
+</body>
+</html>
