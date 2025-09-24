@@ -4,7 +4,10 @@ import * as URIUtils from './uriUtils.js'
 import * as BGZip from './bgzf.js'
 import IGVColor from "./igv-color.js"
 import IGVMath from "./igv-math.js"
+
 import igvxhr from "./igvxhr.js"
+import FeatureCache from "./featureCache.js"
+import FeatureUtils from "./featureUtils.js"
 
 import * as GoogleUtils from './google-utils/googleUtils.js'
 import * as GoogleAuth from './google-utils/googleAuth.js'
@@ -19,6 +22,8 @@ export {
     URIUtils,
     BGZip,
     igvxhr,
+    FeatureCache,
+    FeatureUtils,
     GoogleUtils,
     GoogleAuth,
     GoogleDrive,
