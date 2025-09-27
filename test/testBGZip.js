@@ -75,9 +75,8 @@ suite("testBGzip", function () {
     test("gzip csi index", async function () {
 
         this.timeout(100000)
-        const url = "https://s3.amazonaws.com/igv.org.genomes/hg38/Homo_sapiens.GRCh38.94.chr.gff3.gz.csi"
-        const response = await fetch(url)
-        const data = await response.arrayBuffer()
+        const buffer = fs.readFileSync("test/data/misc/Homo_sapiens.GRCh38.94.chr.gff3.gz.csi")
+        const data = bufferToArrayBuffer(buffer)
         const result = ungzip(data)
         const str = String.fromCharCode.apply(null, result.slice(0, 3))
         assert.equal(str, "CSI")

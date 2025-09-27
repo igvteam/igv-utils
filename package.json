@@ -1,6 +1,6 @@
 {
   "name": "igv-utils",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Misc code shared by igvteam projects",
   "module": "src/index.js",
   "type": "module",
@@ -29,7 +29,6 @@
     "btoa": "^1.2.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
-    "xmldom": "^0.5.0",
-    "google-utils": "github:igvteam/google-utils#v1.0.2"
+    "xmldom": "^0.5.0"
   }
 }

@@ -18,7 +18,7 @@ async function getDriveFileInfo(googleDriveURL) {
     const response = await fetch(endPoint);
     let json = await response.json();
     if (json.error && json.error.code === 404) {
-        let scope = "https://www.googleapis.com/auth/drive.readonly"
+        let scope = "https://www.googleapis.com/auth/drive.file"
         const access_token = await getAccessToken(scope);
         if (access_token) {
             const response = await fetch(endPoint, {
@@ -43,7 +43,7 @@ async function getDriveFileInfo(googleDriveURL) {
  * @returns {Promise<any>}
  */
 async function getDriveInfo() {
-    const access_token = await getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+    const access_token = await getAccessToken('https://www.googleapis.com/auth/drive.file')
     const endPoint = "https://www.googleapis.com/drive/v3/about?fields=*"
     const response = await fetch(endPoint, {
         headers: {

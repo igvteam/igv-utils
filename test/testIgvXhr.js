@@ -196,10 +196,9 @@ suite("testIgvXhr", function () {
     test("test getContentLength", async function () {
 
         this.timeout(10000)
-        const url = "https://raw.githubusercontent.com/igvteam/igv-genomes/refs/heads/main/data/gbk/NC_012920.1.gbk"
+        const url = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/genomes/gbk/NC_012920.1.gbk"
         const contentLength = await igvxhr.getContentLength(url, {})
-        assert.equal(contentLength, 70549)
-
+        assert.equal(contentLength, 70550)
     })
 
     test("test ucsc backup URL", async function () {
