@@ -53,7 +53,8 @@ function getCurrentAccessToken() {
 }
 
 /**
- * Return the of the currently logged in user, if any, as represented by the current access token.  This does not force a login.*
+ * Return the of the currently logged in user, if any, as represented by the current access token.  This does not force
+ * a login.  Used by igv-webapp.
  * @returns {Promise<any>}
  */
 async function getCurrentUserProfile() {
@@ -65,6 +66,9 @@ async function getCurrentUserProfile() {
                 'Authorization': `Bearer ${access_token}`
             }
         })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
         return response.json()
     } else {
         return undefined
@@ -90,19 +94,18 @@ async function getAccessToken(scope) {
     } else {
         const tokenClient = google.igv.tokenClient
         return new Promise((resolve, reject) => {
-            try {
-                // Settle this promise in the response callback for requestAccessToken()
-                tokenClient.callback = (tokenResponse) => {
-                    if (tokenResponse.error !== undefined) {
-                        reject(tokenResponse)
-                    }
-                    google.igv.tokenResponse = tokenResponse
-                    google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
-                    resolve(tokenResponse.access_token)
+            tokenClient.callback = (tokenResponse) => {
+                if (tokenResponse.error !== undefined) {
+                    return reject(tokenResponse)
                 }
+                google.igv.tokenResponse = tokenResponse
+                google.igv.tokenExpiresAt = Date.now() + tokenResponse.expires_in * 1000
+                resolve(tokenResponse.access_token)
+            }
+            try {
                 tokenClient.requestAccessToken({scope})
             } catch (err) {
-                console.log(err)
+                reject(err)
             }
         })
     }

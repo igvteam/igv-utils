@@ -1,159 +1,77 @@
 function isGoogleURL(url) {
-    return (url.includes("googleapis") && !url.includes("urlshortener")) ||
-        isGoogleStorageURL(url) ||
-        isGoogleDriveURL(url)
-}
+     return (url.includes("googleapis") && !url.includes("urlshortener")) ||
+         isGoogleStorageURL(url) ||
+         isGoogleDriveURL(url);
+ }
 
-function isGoogleStorageURL(url) {
-    return url.startsWith("gs://") ||
-        url.startsWith("https://www.googleapis.com/storage") ||
-        url.startsWith("https://storage.cloud.google.com") ||
-        url.startsWith("https://storage.googleapis.com")
-}
+ function isGoogleStorageURL(url) {
+     return url.startsWith("gs://") ||
+         url.startsWith("https://www.googleapis.com/storage") ||
+         url.startsWith("https://storage.cloud.google.com") ||
+         url.startsWith("https://storage.googleapis.com");
+ }
 
-function isGoogleDriveURL(url) {
-    return url.startsWith("https://www.googleapis.com/drive/v3/files")
-}
+ function isGoogleDriveURL(url) {
+     return url.startsWith("https://www.googleapis.com/drive/v3/files");
+ }
 
-/**
- * Translate gs:// urls to https
- * See https://cloud.google.com/storage/docs/json_api/v1
- * @param gsUrl
- * @returns {string|*}
- */
-function translateGoogleCloudURL(gsUrl) {
-    try {
-        let {bucket, object} = parseBucketName(gsUrl)
-        object = encode(object)
+ /**
+  * Translate gs:// urls to https
+  * See https://cloud.google.com/storage/docs/json_api/v1
+  * @param gsUrl
+  * @returns {string|*}
+  */
+ function translateGoogleCloudURL(gsUrl) {
+     try {
+         let {bucket, object} = parseBucketName(gsUrl);
+         object = encode(object);
 
-        let paramString = ""
-        if (!gsUrl.includes("alt=media")) {
-            const qIdx = gsUrl.indexOf('?')
-            paramString = (qIdx > 0) ? gsUrl.substring(qIdx) + "&alt=media" : "?alt=media"
-        }
+         const qIdx = gsUrl.indexOf('?');
+         let paramString = (qIdx > 0) ? gsUrl.substring(qIdx) : "";
 
-        return `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${object}${paramString}`
-    } catch (error) {
-        throw new Error(`Failed to translate Google Cloud URL: ${error.message}`)
-    }
-}
+         if (!paramString.includes("alt=media")) {
+             paramString = paramString ? `${paramString}&alt=media` : "?alt=media";
+         }
 
-/**
- * Parse a google bucket and object name from a google storage URL.  Known forms include
- *
- * gs://BUCKET_NAME/OBJECT_NAME
- * https://storage.googleapis.com/BUCKET_NAME/OBJECT_NAME
- * https://storage.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
- * https://www.googleapis.com/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME"
- * https://storage.googleapis.com/download/storage/v1/b/BUCKET_NAME/o/OBJECT_NAME
- *
- * @param url
- */
-function parseBucketName(url) {
+         return `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${object}${paramString}`;
+     } catch (error) {
+         throw new Error(`Failed to translate Google Cloud URL: ${error.message}`);
+     }
+ }
 
-    let bucket
-    let object
+ /**
+  * Parse a google bucket and object name from a google storage URL.
+  * @param url
+  */
+ function parseBucketName(url) {
+     const regex = /gs:\/\/([a-zA-Z0-9._-]+)\/([^?]+)|https?:\/\/(?:storage\.googleapis\.com|storage\.cloud\.google\.com|www\.googleapis\.com)\/(?:storage\/v1\/b\/)?([a-zA-Z0-9._-]+)\/(?:o\/)?([^?]+)/;
+     const match = url.match(regex);
 
-    if (url.startsWith("gs://")) {
-        const i = url.indexOf('/', 5)
-        if (i >= 0) {
-            bucket = url.substring(5, i)
-            const qIdx = url.indexOf('?')
-            object = (qIdx < 0) ? url.substring(i + 1) : url.substring(i + 1, qIdx)
-        }
+     if (match) {
+         const bucket = match[1] || match[3];
+         const object = match[2] || match[4];
+         if (bucket && object) {
+             return { bucket, object };
+         }
+     }
+     throw new Error(`Unrecognized Google Storage URI: ${url}`);
+ }
 
-    } else if (url.startsWith("https://storage.googleapis.com") || url.startsWith("https://storage.cloud.google.com")) {
-        const bucketIdx = url.indexOf("/v1/b/", 8)
-        if (bucketIdx > 0) {
-            const objIdx = url.indexOf("/o/", bucketIdx)
-            if (objIdx > 0) {
-                const queryIdx = url.indexOf("?", objIdx)
-                bucket = url.substring(bucketIdx + 6, objIdx)
-                object = queryIdx > 0 ? url.substring(objIdx + 3, queryIdx) : url.substring(objIdx + 3)
-            }
+ /**
+  * Percent a GCS object name.  See https://cloud.google.com/storage/docs/request-endpoints
+  * @param objectName
+  */
+ function encode(objectName) {
+     return objectName.split('').map(letter => encodings.get(letter) || letter).join('');
+ }
 
-        } else {
-            const idx1 = url.indexOf("/", 8)
-            const idx2 = url.indexOf("/", idx1 + 1)
-            const idx3 = url.indexOf("?", idx2)
-            if (idx2 > 0) {
-                bucket = url.substring(idx1 + 1, idx2)
-                object = idx3 < 0 ? url.substring(idx2 + 1) : url.substring(idx2 + 1, idx3)
-            }
-        }
+ const encodings = new Map([
+     ["!", "%21"], ["#", "%23"], ["$", "%24"], ["%", "%25"], ["&", "%26"],
+     ["'", "%27"], ["(", "%28"], [")", "%29"], ["*", "%2A"], ["+", "%2B"],
+     [",", "%2C"], ["/", "%2F"], [":", "%3A"], [";", "%3B"], ["=", "%3D"],
+     ["?", "%3F"], ["@", "%40"], ["[", "%5B"], ["]", "%5D"], [" ", "%20"]
+ ]);
 
-    } else if (url.startsWith("https://www.googleapis.com/storage/v1/b")) {
-        const bucketIdx = url.indexOf("/v1/b/", 8)
-        const objIdx = url.indexOf("/o/", bucketIdx)
-        if (objIdx > 0) {
-            const queryIdx = url.indexOf("?", objIdx)
-            bucket = url.substring(bucketIdx + 6, objIdx)
-            object = queryIdx > 0 ? url.substring(objIdx + 3, queryIdx) : url.substring(objIdx + 3)
-        }
-    }
-
-    if (bucket && object) {
-        return {
-            bucket, object
-        }
-    } else {
-        throw Error(`Unrecognized Google Storage URI: ${url}`)
-    }
-
-}
-
-/**
- * Percent a GCS object name.  See https://cloud.google.com/storage/docs/request-endpoints
- * Specific characters to encode:
- *   !, #, $, &, ', (, ), *, +, ,, /, :, ;, =, ?, @, [, ], and space characters.
- * @param obj
- */
-
-function encode(objectName) {
-
-    let result = ''
-    objectName.split('').forEach(function (letter) {
-        if (encodings.has(letter)) {
-            result += encodings.get(letter)
-        } else {
-            result += letter
-        }
-    })
-    return result
-}
-
-//	%23	%24	%25	%26	%27	%28	%29	%2A	%2B	%2C	%2F	%3A	%3B	%3D	%3F	%40	%5B	%5D
-const encodings = new Map()
-encodings.set("!", "%21")
-encodings.set("#", "%23")
-encodings.set("$", "%24")
-encodings.set("%", "%25")
-encodings.set("&", "%26")
-encodings.set("'", "%27")
-encodings.set("(", "%28")
-encodings.set(")", "%29")
-encodings.set("*", "%2A")
-encodings.set("+", "%2B")
-encodings.set(",", "%2C")
-encodings.set("/", "%2F")
-encodings.set(":", "%3A")
-encodings.set(";", "%3B")
-encodings.set("=", "%3D")
-encodings.set("?", "%3F")
-encodings.set("@", "%40")
-encodings.set("[", "%5B")
-encodings.set("]", "%5D")
-encodings.set(" ", "%20")
-
-// For testing
-//for(let [key, value] of encodings) {
-//    const v2 = encodeURIComponent(key);
-//    console.log(value + "  " + v2);
-//}
-
-export {
-    isGoogleURL, isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL, parseBucketName
-}
-
-
-
+ export {
+     isGoogleURL, isGoogleDriveURL, isGoogleStorageURL, translateGoogleCloudURL, parseBucketName
+ };

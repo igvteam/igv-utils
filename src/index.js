@@ -11,8 +11,6 @@ import FeatureUtils from "./featureUtils.js"
 
 import * as GoogleUtils from './google-utils/googleUtils.js'
 import * as GoogleAuth from './google-utils/googleAuth.js'
-import * as GoogleDrive from './google-utils/googleDrive.js'
-import * as GooglePicker from './google-utils/googleFilePicker.js'
 
 export {
     IGVColor,
@@ -25,9 +23,7 @@ export {
     FeatureCache,
     FeatureUtils,
     GoogleUtils,
-    GoogleAuth,
-    GoogleDrive,
-    GooglePicker
+    GoogleAuth
 }
 
 
