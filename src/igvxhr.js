@@ -518,7 +518,7 @@ function addApiKey(url) {
 }
 
 function addTeamDrive(url) {
-    if (url.inculdes("supportsAllDrives")) {
+    if (url.includes("supportsAllDrives")) {
         return url
     } else if (url.includes("supportsTeamDrives")) {
         return url.replaceAll("supportsTeamDrives", "supportsAllDrives")
