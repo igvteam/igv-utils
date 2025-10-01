@@ -26,179 +26,179 @@
 const IGVMath = {
 
     lerp: (v0, v1, t) => {
-        return (1 - t) * v0 + t * v1;
+        return (1 - t) * v0 + t * v1
     },
 
     mean: function (array) {
 
         var t = 0, n = 0,
-            i;
+            i
         for (i = 0; i < array.length; i++) {
             if (!isNaN(array[i])) {
-                t += array[i];
-                n++;
+                t += array[i]
+                n++
             }
         }
-        return n > 0 ? t / n : 0;
+        return n > 0 ? t / n : 0
     },
 
     meanAndStdev: function (array) {
 
-        var v, t = 0, t2 = 0, n = 0, i;
+        var v, t = 0, t2 = 0, n = 0, i
 
         for (i = 0; i < array.length; i++) {
 
-            v = array[i];
+            v = array[i]
 
             if (!isNaN(v)) {
-                t += v;
-                t2 += v * v;
-                n++;
+                t += v
+                t2 += v * v
+                n++
             }
         }
-        return n > 0 ? {mean: t / n, stdev: Math.sqrt(t2 - t * t / n)} : {mean: 0, stdev: 0};
+        return n > 0 ? {mean: t / n, stdev: Math.sqrt(t2 - t * t / n)} : {mean: 0, stdev: 0}
     },
 
     median: function (numbers) {
         // median of [3, 5, 4, 4, 1, 1, 2, 3] = 3
-        var median = 0, numsLen = numbers.length;
-        numbers.sort();
+        var median = 0, numsLen = numbers.length
+        numbers.sort()
 
         if (
             numsLen % 2 === 0 // is even
         ) {
             // average of two middle numbers
-            median = (numbers[numsLen / 2 - 1] + numbers[numsLen / 2]) / 2;
+            median = (numbers[numsLen / 2 - 1] + numbers[numsLen / 2]) / 2
         } else { // is odd
             // middle number only
-            median = numbers[(numsLen - 1) / 2];
+            median = numbers[(numsLen - 1) / 2]
         }
 
-        return median;
+        return median
     },
 
     // Fast percentile function for "p" near edges.  This needs profiled for p in middle (e.g. median)
     percentile: function (array, p) {
 
-        if (array.length === 0) return undefined;
+        if (array.length === 0) return undefined
 
-        var k = Math.floor(array.length * ((100 - p) / 100));
+        var k = Math.floor(array.length * ((100 - p) / 100))
         if (k === 0) {
             array.sort(function (a, b) {
                 return b - a
-            });
-            return array[k];
+            })
+            return array[k]
         } else {
-            return selectElement(array, k);
+            return selectElement(array, k)
         }
 
     },
 
 
     clamp: function (value, min, max) {
-        return Math.min(Math.max(value, min), max);
+        return Math.min(Math.max(value, min), max)
     },
 
     log2: function (x) {
-        return Math.log(x) / Math.LN2;
+        return Math.log(x) / Math.LN2
     }
 
-};
+}
 
 function selectElement(array, k) {
 
     // Credit Steve Hanov http://stevehanov.ca/blog/index.php?id=122
     var heap = new BinaryHeap(),
-        i;
+        i
 
     for (i = 0; i < array.length; i++) {
 
-        var item = array[i];
+        var item = array[i]
 
         // If we have not yet found k items, or the current item is larger than
         // the smallest item on the heap, add current item
         if (heap.content.length < k || item > heap.content[0]) {
             // If the heap is full, remove the smallest element on the heap.
             if (heap.content.length === k) {
-                var r = heap.pop();
+                var r = heap.pop()
             }
             heap.push(item)
         }
     }
 
-    return heap.content[0];
+    return heap.content[0]
 }
 
 
 function BinaryHeap() {
-    this.content = [];
+    this.content = []
 }
 
 BinaryHeap.prototype = {
     push: function (element) {
         // Add the new element to the end of the array.
-        this.content.push(element);
+        this.content.push(element)
         // Allow it to bubble up.
-        this.bubbleUp(this.content.length - 1);
+        this.bubbleUp(this.content.length - 1)
     },
 
     pop: function () {
         // Store the first element so we can return it later.
-        var result = this.content[0];
+        var result = this.content[0]
         // Get the element at the end of the array.
-        var end = this.content.pop();
+        var end = this.content.pop()
         // If there are any elements left, put the end element at the
         // start, and let it sink down.
         if (this.content.length > 0) {
-            this.content[0] = end;
-            this.sinkDown(0);
+            this.content[0] = end
+            this.sinkDown(0)
         }
-        return result;
+        return result
     },
 
     remove: function (node) {
-        var length = this.content.length;
+        var length = this.content.length
         // To remove a value, we must search through the array to find
         // it.
         for (var i = 0; i < length; i++) {
-            if (this.content[i] !== node) continue;
+            if (this.content[i] !== node) continue
             // When it is found, the process seen in 'pop' is repeated
             // to fill up the hole.
-            var end = this.content.pop();
+            var end = this.content.pop()
             // If the element we popped was the one we needed to remove,
             // we're done.
-            if (i === length - 1) break;
+            if (i === length - 1) break
             // Otherwise, we replace the removed element with the popped
             // one, and allow it to float up or sink down as appropriate.
-            this.content[i] = end;
-            this.bubbleUp(i);
-            this.sinkDown(i);
-            break;
+            this.content[i] = end
+            this.bubbleUp(i)
+            this.sinkDown(i)
+            break
         }
     },
 
     size: function () {
-        return this.content.length;
+        return this.content.length
     },
 
     bubbleUp: function (n) {
         // Fetch the element that has to be moved.
-        var element = this.content[n], score = element;
+        var element = this.content[n], score = element
         // When at 0, an element can not go up any further.
         while (n > 0) {
             // Compute the parent element's index, and fetch it.
             var parentN = Math.floor((n + 1) / 2) - 1,
-                parent = this.content[parentN];
+                parent = this.content[parentN]
             // If the parent has a lesser score, things are in order and we
             // are done.
             if (score >= parent)
-                break;
+                break
 
             // Otherwise, swap the parent with the current element and
             // continue.
-            this.content[parentN] = element;
-            this.content[n] = parent;
-            n = parentN;
+            this.content[parentN] = element
+            this.content[n] = parent
+            n = parentN
         }
     },
 
@@ -206,40 +206,40 @@ BinaryHeap.prototype = {
         // Look up the target element and its score.
         var length = this.content.length,
             element = this.content[n],
-            elemScore = element;
+            elemScore = element
 
         while (true) {
             // Compute the indices of the child elements.
-            var child2N = (n + 1) * 2, child1N = child2N - 1;
+            var child2N = (n + 1) * 2, child1N = child2N - 1
             // This is used to store the new position of the element,
             // if any.
-            var swap = null;
+            var swap = null
             // If the first child exists (is inside the array)...
             if (child1N < length) {
                 // Look it up and compute its score.
                 var child1 = this.content[child1N],
-                    child1Score = child1;
+                    child1Score = child1
                 // If the score is less than our element's, we need to swap.
                 if (child1Score < elemScore)
-                    swap = child1N;
+                    swap = child1N
             }
             // Do the same checks for the other child.
             if (child2N < length) {
                 var child2 = this.content[child2N],
-                    child2Score = child2;
+                    child2Score = child2
                 if (child2Score < (swap == null ? elemScore : child1Score))
-                    swap = child2N;
+                    swap = child2N
             }
 
             // No need to swap further, we are done.
-            if (swap == null) break;
+            if (swap == null) break
 
             // Otherwise, swap and continue.
-            this.content[n] = this.content[swap];
-            this.content[swap] = element;
-            n = swap;
+            this.content[n] = this.content[swap]
+            this.content[swap] = element
+            n = swap
         }
     }
-};
+}
 
-export default IGVMath;
+export default IGVMath

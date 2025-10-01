@@ -60,8 +60,8 @@ function getFilename(urlOrFile) {
  * @param object
  */
 function isFile(object) {
-    if(!object) {
-        return false;
+    if (!object) {
+        return false
     }
     return typeof object !== 'function' &&
         (object instanceof File ||

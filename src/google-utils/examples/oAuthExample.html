@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Picker Example</title>
+
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+</head>
+<body>
+
+<div>
+    <h1>Google Oauth Example</h1>
+</div>
+
+<h1>Google Identity Services Authorization Token model</h1>
+
+<button id="signInButton">Sign In</button>
+<br><br>
+<button id="getUserProfileButton">Get user profile</button>
+<br><br>
+<button id="signOutButton">Sign Out</button>
+<br><br>
+<button id="revokeButton">Revoke IGV access</button>
+
+<script type="module">
+
+    import * as GoogleAuth from '../src/googleAuth.js'
+    import oauthConfig from './oauthConfig-private.js'
+
+    GoogleAuth.init(oauthConfig)
+
+    GoogleAuth.signInListen((userProfile) => {
+        alert(userProfile)
+    })
+
+    document.getElementById("signInButton").addEventListener("click", async () => {
+        const userProfile = await GoogleAuth.signIn()
+        console.log(userProfile)
+    })
+
+    document.getElementById("signOutButton").addEventListener("click", () => GoogleAuth.signOut())
+
+    document.getElementById("getUserProfileButton").addEventListener("click", async () => {
+        const userProfile = await GoogleAuth.getCurrentUserProfile()
+        console.log(userProfile)
+    })
+
+
+    document.getElementById("revokeButton").addEventListener("click", () => {
+        const access_token = GoogleAuth.getCurrentAccessToken()
+        if (access_token) {
+            google.accounts.oauth2.revoke(access_token, done => {
+                console.log(done)
+                console.log(done.successful)
+                console.log(done.error)
+                console.log(done.error_description)
+            })
+        }
+    })
+
+
+</script>
+
+
+</body>
+
+</html>

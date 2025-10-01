@@ -518,8 +518,10 @@ function addApiKey(url) {
 }
 
 function addTeamDrive(url) {
-    if (url.includes("supportsTeamDrive")) {
+    if (url.inculdes("supportsAllDrives")) {
         return url
+    } else if (url.includes("supportsTeamDrives")) {
+        return url.replaceAll("supportsTeamDrives", "supportsAllDrives")
     } else {
         const paramSeparator = url.includes("?") ? "&" : "?"
         url = url + paramSeparator + "supportsTeamDrive=true"

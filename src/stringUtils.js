@@ -1,4 +1,3 @@
-
 /**
  * Covers string literals and String objects
  * @param x
@@ -14,17 +13,17 @@ function numberFormatter(rawNumber) {
 
     var dec = String(rawNumber).split(/[.,]/),
         sep = ',',
-        decsep = '.';
+        decsep = '.'
 
     return dec[0].split('').reverse().reduce(function (prev, now, i) {
-        return i % 3 === 0 ? prev + sep + now : prev + now;
-    }).split('').reverse().join('') + (dec[1] ? decsep + dec[1] : '');
+        return i % 3 === 0 ? prev + sep + now : prev + now
+    }).split('').reverse().join('') + (dec[1] ? decsep + dec[1] : '')
 }
 
-const numberUnFormatter = formatedNumber => formatedNumber.split(",").join().replace(",", "", "g");
+const numberUnFormatter = formatedNumber => formatedNumber.split(",").join().replace(",", "", "g")
 
 const splitLines = function (string) {
-    return string.split(/\n|\r\n|\r/g);
+    return string.split(/\n|\r\n|\r/g)
 }
 
 
@@ -35,48 +34,48 @@ function splitStringRespectingQuotes(string, delim) {
         i,
         n = 0,
         quote = false,
-        c;
+        c
 
     if (len > 0) {
 
-        tokens[n] = string.charAt(0);
+        tokens[n] = string.charAt(0)
         for (i = 1; i < len; i++) {
-            c = string.charAt(i);
+            c = string.charAt(i)
             if (c === '"') {
-                quote = !quote;
+                quote = !quote
             } else if (!quote && c === delim) {
-                n++;
-                tokens[n] = "";
+                n++
+                tokens[n] = ""
             } else {
-                tokens[n] += c;
+                tokens[n] += c
             }
         }
     }
-    return tokens;
+    return tokens
 }
 
 function stripQuotes(str) {
-    if(str === undefined) {
-        return str;
+    if (str === undefined) {
+        return str
     }
-    if(str.startsWith("'") || str.startsWith('"')) {
-        str = str.substring(1);
+    if (str.startsWith("'") || str.startsWith('"')) {
+        str = str.substring(1)
     }
     if (str.endsWith("'") || str.endsWith('"')) {
-        str = str.substring(0, str.length - 1);
+        str = str.substring(0, str.length - 1)
     }
-    return str;
+    return str
 }
 
 function hashCode(s) {
     return s.split("").reduce(function (a, b) {
-        a = ((a << 5) - a) + b.charCodeAt(0);
+        a = ((a << 5) - a) + b.charCodeAt(0)
         return a & a
-    }, 0);
+    }, 0)
 }
 
 function capitalize(str) {
-    return str.length > 0 ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+    return str.length > 0 ? str.charAt(0).toUpperCase() + str.slice(1) : str
 }
 
 
@@ -86,24 +85,24 @@ function capitalize(str) {
  */
 function parseLocusString(string) {
 
-    const t1 = string.split(":");
-    const t2 = t1[1].split("-");
+    const t1 = string.split(":")
+    const t2 = t1[1].split("-")
 
     const range = {
         chr: t1[0],
         start: Number.parseInt(t2[0].replace(/,/g, '')) - 1
-    };
-
-    if (t2.length > 1) {
-        range.end = Number.parseInt(t2[1].replace(/,/g, ''));
-    } else {
-        range.end = range.start + 1;
     }
 
-    return range;
+    if (t2.length > 1) {
+        range.end = Number.parseInt(t2[1].replace(/,/g, ''))
+    } else {
+        range.end = range.start + 1
+    }
+
+    return range
 }
 
 export {
     isString, numberFormatter, numberUnFormatter, splitLines, splitStringRespectingQuotes, stripQuotes,
     hashCode, capitalize, parseLocusString
-};
+}

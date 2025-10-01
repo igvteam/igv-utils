@@ -1,10 +1,8 @@
 import "./utils/mockObjects.js"
-import igvxhr from "../src/igvxhr.js"
-import {mapUrl} from "../src/igvxhr.js"
+import igvxhr, {mapUrl} from "../src/igvxhr.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
-import IGVXhr from "../src/igvxhr.js"
 
 suite("testIgvXhr", function () {
 
@@ -228,16 +226,16 @@ suite("testIgvXhr", function () {
         let u2 = "https://dl.dropboxusercontent.com/foo"
         assert.equal(mapUrl(u1), u2)
 
-         u1 = "https://www.broadinstitute.org/igvdata/foo"
-         u2 = "https://data.broadinstitute.org/igvdata/foo"
+        u1 = "https://www.broadinstitute.org/igvdata/foo"
+        u2 = "https://data.broadinstitute.org/igvdata/foo"
         assert.equal(mapUrl(u1), u2)
 
-         u1 = "https://igvdata.broadinstitute.org/foo"
-         u2 = "https://s3.amazonaws.com/igv.broadinstitute.org/foo"
+        u1 = "https://igvdata.broadinstitute.org/foo"
+        u2 = "https://s3.amazonaws.com/igv.broadinstitute.org/foo"
         assert.equal(mapUrl(u1), u2)
 
-         u1 = "https://igv.genepattern.org/foo"
-         u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
+        u1 = "https://igv.genepattern.org/foo"
+        u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
         assert.equal(mapUrl(u1), u2)
     })
 

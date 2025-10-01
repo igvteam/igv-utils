@@ -1,5 +1,4 @@
-
-import {isgzipped, ungzip, decodeDataURI, uncompressString, compressString} from "../src/bgzf.js"
+import {compressString, decodeDataURI, isgzipped, uncompressString, ungzip} from "../src/bgzf.js"
 import {strict as assert} from 'node:assert'
 import fs from 'fs'
 
@@ -114,7 +113,7 @@ function bufferToArrayBuffer(buffer) {
 
     const arrayBufer = new ArrayBuffer(buffer.length)
     const typedArray = new Uint8Array(arrayBufer)
-    for(let i=0; i< buffer.length; i++) {
+    for (let i = 0; i < buffer.length; i++) {
         typedArray[i] = buffer[i]
     }
     return arrayBufer

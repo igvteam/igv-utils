@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 
-import IntervalTree from "./intervalTree.js";
+import IntervalTree from "./intervalTree.js"
 
 /**
  * Object for caching lists of features.  Supports effecient queries for sub-range  (chr, start, end)
@@ -37,15 +37,15 @@ class FeatureCache {
 
     constructor(featureList, genome, range) {
 
-        featureList = featureList || [];
-        this.treeMap = this.buildTreeMap(featureList, genome);
-        this.range = range;
-        this.count = featureList.length;
+        featureList = featureList || []
+        this.treeMap = this.buildTreeMap(featureList, genome)
+        this.range = range
+        this.count = featureList.length
     }
 
     containsRange(genomicRange) {
         // No range means cache contains all features
-        return (this.range === undefined || this.range.contains(genomicRange.chr, genomicRange.start, genomicRange.end));
+        return (this.range === undefined || this.range.contains(genomicRange.chr, genomicRange.start, genomicRange.end))
     }
 
     /**
@@ -54,9 +54,9 @@ class FeatureCache {
      */
     findFeatures(fn) {
         const found = []
-        for(let featureList of Object.values(this.allFeatures)) {
-            for(let f of featureList) {
-                if(fn(f)) {
+        for (let featureList of Object.values(this.allFeatures)) {
+            for (let f of featureList) {
+                if (fn(f)) {
                     found.push(f)
                 }
             }
@@ -66,37 +66,37 @@ class FeatureCache {
 
     queryFeatures(chr, start, end) {
 
-        const tree = this.treeMap[chr];
+        const tree = this.treeMap[chr]
 
-        if (!tree) return [];
+        if (!tree) return []
 
-        const intervals = tree.findOverlapping(start, end);
+        const intervals = tree.findOverlapping(start, end)
 
         if (intervals.length === 0) {
-            return [];
+            return []
         } else {
             // Trim the list of features in the intervals to those
             // overlapping the requested range.
             // Assumption: features are sorted by start position
 
-            const featureList = [];
-            const all = this.allFeatures[chr];
+            const featureList = []
+            const all = this.allFeatures[chr]
             if (all) {
                 for (let interval of intervals) {
-                    const indexRange = interval.value;
+                    const indexRange = interval.value
                     for (let i = indexRange.start; i < indexRange.end; i++) {
-                        let feature = all[i];
-                        if (feature.start > end) break;
+                        let feature = all[i]
+                        if (feature.start > end) break
                         else if (feature.end >= start) {
-                            featureList.push(feature);
+                            featureList.push(feature)
                         }
                     }
                 }
                 featureList.sort(function (a, b) {
-                    return a.start - b.start;
-                });
+                    return a.start - b.start
+                })
             }
-            return featureList;
+            return featureList
         }
     };
 
@@ -106,45 +106,45 @@ class FeatureCache {
      * @returns {Array}
      */
     getAllFeatures() {
-        return this.allFeatures;
+        return this.allFeatures
     }
 
     buildTreeMap(featureList, genome) {
 
-        const treeMap = {};
-        const chromosomes = [];
-        this.allFeatures = {};
+        const treeMap = {}
+        const chromosomes = []
+        this.allFeatures = {}
 
         if (featureList) {
             for (let feature of featureList) {
 
-                let chr = feature.chr;
+                let chr = feature.chr
                 // Translate to "official" name
                 if (genome) {
-                    chr = genome.getChromosomeName(chr);
+                    chr = genome.getChromosomeName(chr)
                 }
 
-                let geneList = this.allFeatures[chr];
+                let geneList = this.allFeatures[chr]
                 if (!geneList) {
-                    chromosomes.push(chr);
-                    geneList = [];
-                    this.allFeatures[chr] = geneList;
+                    chromosomes.push(chr)
+                    geneList = []
+                    this.allFeatures[chr] = geneList
                 }
-                geneList.push(feature);
+                geneList.push(feature)
             }
 
 
             // Now build interval tree for each chromosome
             for (let chr of chromosomes) {
-                const chrFeatures = this.allFeatures[chr];
+                const chrFeatures = this.allFeatures[chr]
                 chrFeatures.sort(function (f1, f2) {
-                    return (f1.start === f2.start ? 0 : (f1.start > f2.start ? 1 : -1));
-                });
-                treeMap[chr] = buildIntervalTree(chrFeatures);
+                    return (f1.start === f2.start ? 0 : (f1.start > f2.start ? 1 : -1))
+                })
+                treeMap[chr] = buildIntervalTree(chrFeatures)
             }
         }
 
-        return treeMap;
+        return treeMap
     }
 }
 
@@ -156,31 +156,31 @@ class FeatureCache {
  */
 function buildIntervalTree(featureList) {
 
-    const tree = new IntervalTree();
-    const len = featureList.length;
-    const chunkSize = Math.max(10, Math.round(len / 10));
+    const tree = new IntervalTree()
+    const len = featureList.length
+    const chunkSize = Math.max(10, Math.round(len / 10))
 
     for (let i = 0; i < len; i += chunkSize) {
-        const e = Math.min(len, i + chunkSize);
-        const subArray = new IndexRange(i, e); //featureList.slice(i, e);
-        const iStart = featureList[i].start;
+        const e = Math.min(len, i + chunkSize)
+        const subArray = new IndexRange(i, e) //featureList.slice(i, e);
+        const iStart = featureList[i].start
         //
-        let iEnd = iStart;
+        let iEnd = iStart
         for (let j = i; j < e; j++) {
-            iEnd = Math.max(iEnd, featureList[j].end);
+            iEnd = Math.max(iEnd, featureList[j].end)
         }
-        tree.insert(iStart, iEnd, subArray);
+        tree.insert(iStart, iEnd, subArray)
     }
 
-    return tree;
+    return tree
 }
 
 
 class IndexRange {
     constructor(start, end) {
-        this.start = start;
-        this.end = end;
+        this.start = start
+        this.end = end
     }
 }
 
-export default FeatureCache;
+export default FeatureCache

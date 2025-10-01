@@ -23,7 +23,7 @@
 //
 
 
-'use strict';
+'use strict'
 
 /**
  * @constructor
@@ -33,9 +33,9 @@
  */
 class Throttle {
     constructor(options) {
-        this.requestsPerSecond = options.requestsPerSecond || 10;
-        this.lastStartTime = 0;
-        this.queued = [];
+        this.requestsPerSecond = options.requestsPerSecond || 10
+        this.lastStartTime = 0
+        this.queued = []
     }
 
     /**
@@ -46,15 +46,15 @@ class Throttle {
      */
     add(asyncFunction, options) {
 
-        var self = this;
+        var self = this
         return new Promise(function (resolve, reject) {
             self.queued.push({
                 resolve: resolve,
                 reject: reject,
                 asyncFunction: asyncFunction,
-            });
-            self.dequeue();
-        });
+            })
+            self.dequeue()
+        })
     }
 
     /**
@@ -67,10 +67,10 @@ class Throttle {
      */
     addAll(promises, options) {
         var addedPromises = promises.map(function (promise) {
-            return this.add(promise, options);
-        }.bind(this));
+            return this.add(promise, options)
+        }.bind(this))
 
-        return Promise.all(addedPromises);
+        return Promise.all(addedPromises)
     };
 
     /**
@@ -81,15 +81,15 @@ class Throttle {
         if (this.queued.length > 0) {
             var now = new Date(),
                 inc = (1000 / this.requestsPerSecond) + 1,
-                elapsed = now - this.lastStartTime;
+                elapsed = now - this.lastStartTime
 
             if (elapsed >= inc) {
-                this._execute();
+                this._execute()
             } else {
                 // we have reached the limit, schedule a dequeue operation
                 setTimeout(function () {
-                    this.dequeue();
-                }.bind(this), inc - elapsed);
+                    this.dequeue()
+                }.bind(this), inc - elapsed)
             }
         }
     }
@@ -100,14 +100,14 @@ class Throttle {
      * @return {void}
      */
     async _execute() {
-        this.lastStartTime = new Date();
-        var candidate = this.queued.shift();
-        const f = candidate.asyncFunction;
+        this.lastStartTime = new Date()
+        var candidate = this.queued.shift()
+        const f = candidate.asyncFunction
         try {
-            const r = await f();
-            candidate.resolve(r);
+            const r = await f()
+            candidate.resolve(r)
         } catch (e) {
-            candidate.reject(e);
+            candidate.reject(e)
         }
 
     }
@@ -115,4 +115,4 @@ class Throttle {
 
 }
 
-export default Throttle;
+export default Throttle

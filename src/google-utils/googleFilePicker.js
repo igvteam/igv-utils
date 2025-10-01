@@ -18,32 +18,32 @@ async function init() {
         gapi.load("picker", {
             callback: resolve,
             onerror: reject
-        });
+        })
     })
 }
 
 async function createDropdownButtonPicker(multipleFileSelection, filePickerHandler) {
 
 
-    if(typeof gapi === "undefined") {
+    if (typeof gapi === "undefined") {
         throw Error("Google authentication requires the 'gapi' library")
     }
 
-    if(typeof google === "undefined" || !google.picker) {
-        await init();
+    if (typeof google === "undefined" || !google.picker) {
+        await init()
     }
 
     const access_token = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.file')
     if (access_token) {
 
-        const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
-        view.setIncludeFolders(true);
+        const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        view.setIncludeFolders(true)
 
-        const teamView = new google.picker.DocsView(google.picker.ViewId.DOCS);
-        teamView.setEnableTeamDrives(true);
-        teamView.setIncludeFolders(true);
+        const teamView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        teamView.setEnableTeamDrives(true)
+        teamView.setIncludeFolders(true)
 
-        let picker;
+        let picker
         if (multipleFileSelection) {
             picker = new google.picker.PickerBuilder()
                 .setAppId(google.igv.appId)
@@ -54,10 +54,10 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
                 .enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES)
                 .setCallback(function (data) {
                     if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
-                        filePickerHandler(data[google.picker.Response.DOCUMENTS]);
+                        filePickerHandler(data[google.picker.Response.DOCUMENTS])
                     }
                 })
-                .build();
+                .build()
 
         } else {
             picker = new google.picker.PickerBuilder()
@@ -69,19 +69,19 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
                 .enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES)
                 .setCallback(function (data) {
                     if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
-                        filePickerHandler(data[google.picker.Response.DOCUMENTS]);
+                        filePickerHandler(data[google.picker.Response.DOCUMENTS])
                     }
                 })
-                .build();
+                .build()
 
         }
 
-        picker.setVisible(true);
+        picker.setVisible(true)
 
     } else {
-        throw Error("Sign into Google before using picker");
+        throw Error("Sign into Google before using picker")
     }
 }
 
 
-export {init, createDropdownButtonPicker};
+export {init, createDropdownButtonPicker}

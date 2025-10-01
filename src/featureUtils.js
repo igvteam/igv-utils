@@ -24,28 +24,28 @@
  * THE SOFTWARE.
  */
 
-import IntervalTree from "./intervalTree.js";
+import IntervalTree from "./intervalTree.js"
 
 const FeatureUtils = {
 
     packFeatures: function (features, maxRows, sorted) {
 
-        var start;
-        var end;
+        var start
+        var end
 
-        if (!features) return;
+        if (!features) return
 
-        maxRows = maxRows || 10000;
+        maxRows = maxRows || 10000
 
         if (!sorted) {
             features.sort(function (a, b) {
-                return a.start - b.start;
-            });
+                return a.start - b.start
+            })
         }
 
 
         if (features.length === 0) {
-            return [];
+            return []
 
         } else {
 
@@ -58,25 +58,25 @@ const FeatureUtils = {
                 bucket,
                 feature,
                 gap = 2,
-                bucketStart;
+                bucketStart
 
-            start = features[0].start;
-            end = features[features.length - 1].start;
+            start = features[0].start
+            end = features[features.length - 1].start
 
-            bucketStart = Math.max(start, features[0].start);
-            nextStart = bucketStart;
+            bucketStart = Math.max(start, features[0].start)
+            nextStart = bucketStart
 
             features.forEach(function (alignment) {
 
-                var buckListIndex = Math.max(0, alignment.start - bucketStart);
+                var buckListIndex = Math.max(0, alignment.start - bucketStart)
                 if (bucketList[buckListIndex] === undefined) {
-                    bucketList[buckListIndex] = [];
+                    bucketList[buckListIndex] = []
                 }
-                bucketList[buckListIndex].push(alignment);
-            });
+                bucketList[buckListIndex].push(alignment)
+            })
 
 
-            row = 0;
+            row = 0
 
 
             while (allocatedCount < features.length && row <= maxRows) {
@@ -84,40 +84,40 @@ const FeatureUtils = {
 
                 while (nextStart <= end) {
 
-                    bucket = undefined;
+                    bucket = undefined
 
                     while (!bucket && nextStart <= end) {
 
-                        index = nextStart - bucketStart;
+                        index = nextStart - bucketStart
                         if (bucketList[index] === undefined) {
-                            ++nextStart;                     // No buckets at this index
+                            ++nextStart                     // No buckets at this index
                         } else {
-                            bucket = bucketList[index];
+                            bucket = bucketList[index]
                         }
 
                     } // while (bucket)
 
                     if (!bucket) {
-                        break;
+                        break
                     }
-                    feature = bucket.pop();
+                    feature = bucket.pop()
                     if (0 === bucket.length) {
-                        bucketList[index] = undefined;
+                        bucketList[index] = undefined
                     }
 
-                    feature.row = row;
+                    feature.row = row
 
-                    nextStart = feature.end + gap;
-                    ++allocatedCount;
+                    nextStart = feature.end + gap
+                    ++allocatedCount
 
                 } // while (nextStart)
 
-                row++;
-                nextStart = bucketStart;
+                row++
+                nextStart = bucketStart
 
-                if (allocatedCount === lastAllocatedCount) break;   // Protect from infinite loops
+                if (allocatedCount === lastAllocatedCount) break   // Protect from infinite loops
 
-                lastAllocatedCount = allocatedCount;
+                lastAllocatedCount = allocatedCount
 
             } // while (allocatedCount)
 
@@ -137,37 +137,37 @@ const FeatureUtils = {
     findOverlapping: function (featureList, start, end) {
 
         if (!featureList || featureList.length === 0) {
-            return [];
+            return []
         } else {
-            const tree = buildIntervalTree(featureList);
-            const intervals = tree.findOverlapping(start, end);
+            const tree = buildIntervalTree(featureList)
+            const intervals = tree.findOverlapping(start, end)
 
             if (intervals.length === 0) {
-                return [];
+                return []
             } else {
                 // Trim the list of features in the intervals to those
                 // overlapping the requested range.
                 // Assumption: features are sorted by start position
 
-                featureList = [];
+                featureList = []
 
                 intervals.forEach(function (interval) {
-                    const intervalFeatures = interval.value;
-                    const len = intervalFeatures.length;
+                    const intervalFeatures = interval.value
+                    const len = intervalFeatures.length
                     for (let i = 0; i < len; i++) {
-                        const feature = intervalFeatures[i];
-                        if (feature.start > end) break;
+                        const feature = intervalFeatures[i]
+                        if (feature.start > end) break
                         else if (feature.end > start) {
-                            featureList.push(feature);
+                            featureList.push(feature)
                         }
                     }
-                });
+                })
 
                 featureList.sort(function (a, b) {
-                    return a.start - b.start;
-                });
+                    return a.start - b.start
+                })
 
-                return featureList;
+                return featureList
             }
         }
 
@@ -183,26 +183,26 @@ const FeatureUtils = {
  */
 function buildIntervalTree(featureList) {
 
-    const tree = new IntervalTree();
-    const len = featureList.length;
-    const chunkSize = Math.max(10, Math.round(len / 100));
+    const tree = new IntervalTree()
+    const len = featureList.length
+    const chunkSize = Math.max(10, Math.round(len / 100))
 
     featureList.sort(function (f1, f2) {
-        return (f1.start === f2.start ? 0 : (f1.start > f2.start ? 1 : -1));
-    });
+        return (f1.start === f2.start ? 0 : (f1.start > f2.start ? 1 : -1))
+    })
 
     for (let i = 0; i < len; i += chunkSize) {
-        const e = Math.min(len, i + chunkSize);
-        const subArray = featureList.slice(i, e);
-        const iStart = subArray[0].start;
-        let iEnd = iStart;
+        const e = Math.min(len, i + chunkSize)
+        const subArray = featureList.slice(i, e)
+        const iStart = subArray[0].start
+        let iEnd = iStart
         subArray.forEach(function (feature) {
-            iEnd = Math.max(iEnd, feature.end);
-        });
-        tree.insert(iStart, iEnd, subArray);
+            iEnd = Math.max(iEnd, feature.end)
+        })
+        tree.insert(iStart, iEnd, subArray)
     }
 
-    return tree;
+    return tree
 }
 
-export default FeatureUtils;
+export default FeatureUtils
