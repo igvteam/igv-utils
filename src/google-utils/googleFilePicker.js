@@ -33,8 +33,7 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         await init();
     }
 
-    // We fetch the "drive.readonly" scope because it is neccessary to enable downloading the file
-    const access_token = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.readonly')
+    const access_token = await GoogleAuth.getAccessToken('https://www.googleapis.com/auth/drive.file')
     if (access_token) {
 
         const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
@@ -47,6 +46,7 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
         let picker;
         if (multipleFileSelection) {
             picker = new google.picker.PickerBuilder()
+                .setAppId(google.igv.appId)
                 .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
                 .setOAuthToken(access_token)
                 .addView(view)
@@ -61,6 +61,7 @@ async function createDropdownButtonPicker(multipleFileSelection, filePickerHandl
 
         } else {
             picker = new google.picker.PickerBuilder()
+                .setAppId(google.igv.appId)
                 .disableFeature(google.picker.Feature.MULTISELECT_ENABLED)
                 .setOAuthToken(access_token)
                 .addView(view)

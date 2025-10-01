@@ -12,7 +12,7 @@ function isGoogleStorageURL(url) {
 }
 
 function isGoogleDriveURL(url) {
-    return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
+    return url.startsWith("https://www.googleapis.com/drive/v3/files")
 }
 
 /**

@@ -14,3 +14,4 @@
 /examples/oauthConfig-private.js
 /package-lock.json
 /test/oauthConfig-private.js
+/src/google-utils/examples/oauthConfig-private.js

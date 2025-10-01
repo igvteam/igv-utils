@@ -29,7 +29,7 @@ import {parseUri} from './uriUtils.js'
 import {decodeDataURI, isgzipped, ungzip} from './bgzf.js'
 import * as GoogleUtils from './google-utils/googleUtils.js'
 import * as GoogleAuth from './google-utils/googleAuth.js'
-import * as GoogleDrive from './google-utils/googleDrive.js'
+import {getAccessToken} from './google-utils/googleAuth.js'
 import Throttle from "./throttle.js"
 import {StringUtils} from "./index.js"
 
@@ -126,9 +126,6 @@ class IGVXhr {
                     return buffer
                 }
             } else {
-                if (url.startsWith("https://drive.google.com")) {
-                    url = GoogleDrive.getDriveDownloadURL(url)
-                }
                 if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
                     return this.googleThrottle.add(async () => {
                         return this._loadURL(url, options)
@@ -152,9 +149,15 @@ class IGVXhr {
 
         options = options || {}
 
-        let oauthToken = options.oauthToken || this.getOauthToken(url)
-        if (oauthToken) {
-            oauthToken = await (typeof oauthToken === 'function' ? oauthToken() : oauthToken)
+        let oauthToken
+        if (GoogleUtils.isGoogleDriveURL(url)) {
+            // Google drive urls always require oAuth
+            oauthToken = await getAccessToken("https://www.googleapis.com/auth/drive.file")
+        } else {
+            oauthToken = options.oauthToken || this.getOauthToken(url)
+            if (oauthToken) {
+                oauthToken = await (typeof oauthToken === 'function' ? oauthToken() : oauthToken)
+            }
         }
 
         return new Promise(function (resolve, reject) {
@@ -548,8 +551,6 @@ function mapUrl(url) {
 
     if (url.startsWith("https://www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com")
-    } else if (url.startsWith("https://drive.google.com")) {
-        return GoogleDrive.getDriveDownloadURL(url)
     } else if (url.includes("//www.broadinstitute.org/igvdata")) {
         return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata")
     } else if (url.includes("//igvdata.broadinstitute.org")) {
