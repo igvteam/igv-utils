@@ -117,6 +117,8 @@ class IGVXhr {
         if (isFile(url)) {
             return this._loadFileSlice(url, options)
         } else if (StringUtils.isString(url)) {
+            // Convert "virtual" URLs (keys that don't exist) to real URLs before any other action
+            url = await convert(url)
             if (url.startsWith("data:")) {
                 const buffer = decodeDataURI(url).buffer
                 if (options.range) {
@@ -656,7 +658,7 @@ async function convert(url) {
         try {
             const data = await igvxhr.loadString(mappingURL)
             const lines = data.split("\n")
-            for (line of lines) {
+            for (const line of lines) {
                 if (line.startsWith("#")) continue
 
                 const tokens = line.split('\t')
