@@ -194,9 +194,10 @@ suite("testIgvXhr", function () {
     test("test getContentLength", async function () {
 
         this.timeout(10000)
-        const url = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/genomes/gbk/NC_012920.1.gbk"
+        // Pinned to a commit sha -- a branch ref would let an upstream edit change the content length out from under us
+        const url = "https://raw.githubusercontent.com/igvteam/igv-data/2fe36d006d7397812309caf4e3951466bb01dd25/genomes/gbk/NC_012920.1.gbk"
         const contentLength = await igvxhr.getContentLength(url, {})
-        assert.equal(contentLength, 70550)
+        assert.equal(contentLength, 70556)
     })
 
     test("test ucsc backup URL", async function () {

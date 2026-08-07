@@ -24,10 +24,15 @@ global.File = File;
 
 global.XMLHttpRequest = XMLHttpRequestMock;
 
-global.navigator = {
-    userAgent: "Node",
-    vendor: "Node"
-}
+// Node >= 21 defines "navigator" as a getter-only property, it cannot be assigned directly.
+Object.defineProperty(global, 'navigator', {
+    value: {
+        userAgent: "Node",
+        vendor: "Node"
+    },
+    writable: true,
+    configurable: true
+})
 
 global.DOMParser = DOMParser;
 
