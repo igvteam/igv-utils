@@ -10,6 +10,7 @@ import Throttle from "./throttle.js"
 import {StringUtils} from "./index.js"
 
 const mappingURL = "https://igv.org/data/url_mappings.tsv"
+const MAPPING_TIMEOUT = 2000
 
 class IGVXhr {
 
@@ -32,7 +33,7 @@ class IGVXhr {
     }
 
     async loadArrayBuffer(url, options) {
-        options = options || {}
+        options = {...options}       // Copy -- these methods add to options, the caller's object must not be modified
         if (!options.responseType) {
             options.responseType = "arraybuffer"
         }
@@ -62,7 +63,7 @@ class IGVXhr {
 
 
     async loadJson(url, options) {
-        options = options || {}
+        options = {...options}
         const method = options.method || (options.sendData ? "POST" : "GET")
         if (method === "POST") {
             options.contentType = "application/json"
@@ -76,7 +77,7 @@ class IGVXhr {
     }
 
     async loadString(path, options) {
-        options = options || {}
+        options = {...options}
         if (path instanceof File) {
             return this._loadStringFromFile(path, options)
         } else {
@@ -95,8 +96,6 @@ class IGVXhr {
         if (isFile(url)) {
             return this._loadFileSlice(url, options)
         } else if (StringUtils.isString(url)) {
-            // Convert "virtual" URLs (keys that don't exist) to real URLs before any other action
-            url = await convert(url)
             if (url.startsWith("data:")) {
                 const buffer = decodeDataURI(url).buffer
                 if (options.range) {
@@ -106,16 +105,49 @@ class IGVXhr {
                     return buffer
                 }
             } else {
-                if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
-                    return this.googleThrottle.add(async () => {
-                        return this._loadURL(url, options)
-                    })
-                } else {
-                    return this._loadURL(url, options)
-                }
+                return this._loadWithMapping(url, options)
             }
         } else {
             throw Error(`url must be either a 'File', 'string', 'function', or 'Promise'.  Actual type: ${urlType}`)
+        }
+    }
+
+    /**
+     * Load a URL, falling back to the url mapping table if the request fails.  The table maps references to
+     * resources that have been, or will be, retired.  Most are still live -- so it is consulted only on failure,
+     * and a request that succeeds never waits on it.
+     */
+    async _loadWithMapping(url, options) {
+
+        try {
+            // NOTE: "return await", not "return".  A bare return settles outside the try and the catch never runs.
+            return await this._dispatch(url, {...options})
+        } catch (e) {
+            if (!isMappable(e)) throw e
+
+            const mappedUrl = await getMapping(url)
+            if (!mappedUrl) throw e
+
+            try {
+                return await this._dispatch(mappedUrl, {...options})
+            } catch (mappedError) {
+                // Surface the original failure, it names the url the caller actually asked for
+                e.cause = mappedError
+                throw e
+            }
+        }
+    }
+
+    /**
+     * Send a URL request, through the throttle for hosts that require it.
+     */
+    async _dispatch(url, options) {
+        if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
+            return this.googleThrottle.add(async () => {
+                return this._loadURL(url, options)
+            })
+        } else {
+            return this._loadURL(url, options)
         }
     }
 
@@ -150,7 +182,7 @@ class IGVXhr {
                 url = addApiKey(url)
 
                 if (GoogleUtils.isGoogleDriveURL(url)) {
-                    addTeamDrive(url)
+                    url = addTeamDrive(url)
                 }
 
                 // If we have an access token try it, but don't force a signIn or request for scopes yet
@@ -196,11 +228,8 @@ class IGVXhr {
             if (responseType) {
                 xhr.responseType = responseType
             }
-            if (headers) {
-                for (let key of Object.keys(headers)) {
-                    const value = headers[key]
-                    xhr.setRequestHeader(key, value)
-                }
+            for (let key of Object.keys(headers)) {
+                xhr.setRequestHeader(key, headers[key])
             }
 
             // NOTE: using withCredentials with servers that return "*" for access-allowed-origin will fail
@@ -213,7 +242,7 @@ class IGVXhr {
                 const isFileProtocol = url.toLowerCase().startsWith("file:")
 
                 // when the url points to a local file, the status is 0
-                if ((xhr.status >= 200 && xhr.status <= 300) || (isFileProtocol && xhr.status === 0)) {
+                if ((xhr.status >= 200 && xhr.status < 300) || (isFileProtocol && xhr.status === 0)) {
                     if ("HEAD" === options.method) {
                         // Support fetching specific headers.  Attempting to fetch all headers can be problematic with CORS
                         const headers = options.requestedHeaders || ['content-length']
@@ -228,9 +257,13 @@ class IGVXhr {
 
                             // For small files a range starting at 0 can return the whole file => 200
                             // Provide just the slice we asked for, throw out the rest quietly
-                            // If file is large warn user
-                            if (xhr.response.length > 1000000 && !self.RANGE_WARNING_GIVEN) {
-                                alert(`Warning: Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
+                            // If file is large warn user.  NOTE: an arraybuffer response has "byteLength", a string "length"
+                            const responseSize = xhr.response.byteLength !== undefined ?
+                                xhr.response.byteLength :
+                                xhr.response.length
+                            if (responseSize > 1000000 && !self.RANGE_WARNING_GIVEN) {
+                                self.RANGE_WARNING_GIVEN = true
+                                console.warn(`Range header ignored for URL: ${url}.  This can have severe performance impacts.`)
                             }
                             resolve(xhr.response.slice(range.start, range.start + range.size))
                         } else {
@@ -238,7 +271,7 @@ class IGVXhr {
                         }
                     }
                 } else if (xhr.status === 416) {
-                    handleError(Error(`416 Unsatisfiable Range`))
+                    handleError(requestError(`416 Unsatisfiable Range: ${url}`, 416))
                 } else if (GoogleAuth.isInitialized() &&
                     ((xhr.status === 404 || xhr.status === 401 || xhr.status === 403) &&
                         GoogleUtils.isGoogleURL(url)) &&
@@ -246,9 +279,9 @@ class IGVXhr {
                     tryGoogleAuth()
 
                 } else {
-                    const error = new Error(`Error accessing resource: ${url} status: ${xhr.status}`)
+                    const error = requestError(`Error accessing resource: ${url} status: ${xhr.status}`, xhr.status)
                     if (xhr.status === 403) {
-                        handleError("Access forbidden: " + url)
+                        handleError(requestError("Access forbidden: " + url, 403))
                     } else if (host === self.UCSC_HOST) {
                         tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, error)
                     } else if (xhr.status === 0 && self.corsProxy && !options.corsProxyRetried) {
@@ -260,7 +293,7 @@ class IGVXhr {
             }
 
             xhr.onerror = function (event) {
-                const error = new Error(`Error accessing resource: ${url} status: ${xhr.status}`)
+                const error = requestError(`Error accessing resource: ${url} status: ${xhr.status}`, xhr.status)
                 if (GoogleUtils.isGoogleURL(url) && !options.retries) {
                     tryGoogleAuth()
                 } else if (host === self.UCSC_HOST) {
@@ -273,7 +306,14 @@ class IGVXhr {
             }
 
             xhr.ontimeout = function (event) {
-                handleError("Timed out")
+                const error = requestError(`Timed out accessing resource: ${url}`, 0)
+                if (host === self.UCSC_HOST) {
+                    tryUcscBackup(self.UCSC_HOST, self.UCSC_BACKUP_HOST, error)
+                } else if (self.corsProxy && !options.corsProxyRetried) {
+                    tryCorsProxy(error)
+                } else {
+                    handleError(error)
+                }
             }
 
             xhr.onabort = function (event) {
@@ -293,11 +333,7 @@ class IGVXhr {
 
 
             function handleError(error) {
-                if (reject) {
-                    reject(error)
-                } else {
-                    throw error
-                }
+                reject(error)
             }
 
             async function tryCorsProxy(error) {
@@ -317,7 +353,11 @@ class IGVXhr {
                     const result = await self._loadURL(backupUrl, options)
                     resolve(result)
                 } catch (e) {
-                    handleError(error)
+                    if(error) {
+                        handleError(error)
+                    } else {
+                        handleError(e)
+                    }
                 }
             }
 
@@ -333,7 +373,11 @@ class IGVXhr {
                         const msg = e.error.startsWith("popup_blocked") ?
                             "Google login popup blocked by browser." :
                             e.error
-                        alert(msg)
+                        if (typeof alert === 'function') {
+                            alert(msg)
+                        }
+                        // The request is over either way -- settle it, or the caller waits forever
+                        handleError(new Error(msg))
                     } else {
                         handleError(e)
                     }
@@ -369,7 +413,7 @@ class IGVXhr {
 
     async _loadStringFromUrl(url, options) {
 
-        options = options || {}
+        options = {...options}
         options.responseType = "arraybuffer"
         const data = await this.load(url, options)
         return arrayBufferToString(data)
@@ -425,10 +469,8 @@ class IGVXhr {
             return url.size
         } else {
             try {
-                options = options || {}
-                options.method = 'HEAD'
-                options.requestedHeaders = ['content-length']
-                const headerMap = await this._loadURL(url, options)
+                options = {...options, method: 'HEAD', requestedHeaders: ['content-length']}
+                const headerMap = await this._loadWithMapping(url, options)
                 const contentLengthString = headerMap['content-length']
                 return contentLengthString ? Number.parseInt(contentLengthString) : 0
             } catch (e) {
@@ -442,6 +484,24 @@ class IGVXhr {
 
 function isGoogleStorageSigned(url) {
     return url.indexOf("X-Goog-Signature") > -1
+}
+
+/**
+ * Build a request failure.  "status" is the http status if we got a response, otherwise 0 (network error, timeout,
+ * or a request blocked by CORS).  Note an aborted request rejects with the abort event, it has no status.
+ */
+function requestError(message, status) {
+    const error = new Error(message)
+    error.status = status
+    return error
+}
+
+// Failures that could mean the resource has been retired.  A 416 (bad range) or an abort (no status) tells us
+// nothing about the url, and a 5xx is the server's problem, not the url's.
+const MAPPABLE_STATUS = new Set([0, 403, 404, 410])
+
+function isMappable(error) {
+    return error !== undefined && error !== null && MAPPABLE_STATUS.has(error.status)
 }
 
 
@@ -504,25 +564,8 @@ function addTeamDrive(url) {
         return url.replaceAll("supportsTeamDrives", "supportsAllDrives")
     } else {
         const paramSeparator = url.includes("?") ? "&" : "?"
-        url = url + paramSeparator + "supportsTeamDrive=true"
+        return url + paramSeparator + "supportsAllDrives=true"
     }
-}
-
-function parseResponseHeaders(headers) {
-
-    // Convert the header string into an array of individual headers
-    const arr = headers.trim().split(/[\r\n]+/)
-
-    // Create a map of header names to values
-    const headerMap = {}
-    for (let line of arr) {
-        const parts = line.split(": ")
-        const header = parts.shift()
-        const value = parts.join(": ")
-        headerMap[header] = value
-    }
-
-    return headerMap
 }
 
 /**
@@ -556,102 +599,59 @@ function arrayBufferToString(arraybuffer) {
         plain = new Uint8Array(arraybuffer)
     }
 
-    if ('TextDecoder' in getGlobalObject()) {
-        return new TextDecoder().decode(plain)
-    } else {
-        return decodeUTF8(plain)
+    return new TextDecoder().decode(plain)
+}
+
+let mappingsPromise
+
+/**
+ * Fetch the table of "virtual" URL mappings.  Failure is not fatal, an empty map is returned, and the (empty)
+ * result is cached -- we do not retry on every subsequent request.
+ *
+ * @returns {Promise<Map<string, string>>}
+ */
+async function loadMappings() {
+
+    const mappings = new Map()
+    try {
+        // Bound the wait -- every url load blocks on this fetch, an unreachable host must not stall the browser
+        const data = await igvxhr.loadString(mappingURL, {timeout: MAPPING_TIMEOUT})
+        for (const line of data.split("\n")) {
+            if (line.startsWith("#")) continue
+
+            const tokens = line.split('\t')
+            if (tokens.length === 2) {
+                mappings.set(tokens[0], tokens[1])
+            }
+        }
+    } catch (e) {
+        console.warn(`Error loading url mappings`, e)
     }
+    return mappings
 }
 
 /**
- * Use when TextDecoder is not available (primarily IE).
- *
- * From: https://gist.github.com/Yaffle/5458286
- *
- * @param octets
- * @returns {string}
+ * Return the replacement for a retired URL, or undefined if there is none.
  */
-function decodeUTF8(octets) {
-    var string = ""
-    var i = 0
-    while (i < octets.length) {
-        var octet = octets[i]
-        var bytesNeeded = 0
-        var codePoint = 0
-        if (octet <= 0x7F) {
-            bytesNeeded = 0
-            codePoint = octet & 0xFF
-        } else if (octet <= 0xDF) {
-            bytesNeeded = 1
-            codePoint = octet & 0x1F
-        } else if (octet <= 0xEF) {
-            bytesNeeded = 2
-            codePoint = octet & 0x0F
-        } else if (octet <= 0xF4) {
-            bytesNeeded = 3
-            codePoint = octet & 0x07
-        }
-        if (octets.length - i - bytesNeeded > 0) {
-            var k = 0
-            while (k < bytesNeeded) {
-                octet = octets[i + k + 1]
-                codePoint = (codePoint << 6) | (octet & 0x3F)
-                k += 1
-            }
-        } else {
-            codePoint = 0xFFFD
-            bytesNeeded = octets.length - i
-        }
-        string += String.fromCodePoint(codePoint)
-        i += bytesNeeded + 1
-    }
-    return string
-}
+async function getMapping(url) {
 
-
-function getGlobalObject() {
-    if (typeof self !== 'undefined') {
-        return self
-    }
-    if (typeof global !== 'undefined') {
-        return global
-    } else {
-        return window
-    }
-}
-
-function isAmazonV4Signed(url) {
-    return url.indexOf("X-Amz-Signature") > -1
-}
-
-let mappings
-
-async function convert(url) {
-
-    if (!mappings) {
-        mappings = new Map()
-
-        try {
-            const data = await igvxhr.loadString(mappingURL)
-            const lines = data.split("\n")
-            for (const line of lines) {
-                if (line.startsWith("#")) continue
-
-                const tokens = line.split('\t')
-                if (tokens.length === 2) {
-                    mappings.set(tokens[0], tokens[1])
-                }
-            }
-        } catch (e) {
-            console.error(`Error loading url mappings`, e)
-        }
+    // The mapping table is itself fetched with "load", it must not be mapped or we would recurse indefinitely.
+    if (url === mappingURL) {
+        return undefined
     }
 
-    return mappings.has(url) ? mappings.get(url) : url
+    // Cache the promise, not the map, so that concurrent callers all await the same fetch.
+    if (!mappingsPromise) {
+        mappingsPromise = loadMappings()
+    }
+    const mappings = await mappingsPromise
+
+    const mappedUrl = mappings.get(url)
+    return mappedUrl === url ? undefined : mappedUrl
 }
 
 
 const igvxhr = new IGVXhr()
 
 export default igvxhr
-export {arrayBufferToString, mapUrl}
+export {arrayBufferToString, mapUrl, isMappable}
