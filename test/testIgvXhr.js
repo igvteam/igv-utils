@@ -1,5 +1,5 @@
 import "./utils/mockObjects.js"
-import igvxhr, {mapUrl} from "../src/igvxhr.js"
+import igvxhr, {mapUrl, isMappable} from "../src/igvxhr.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
@@ -238,6 +238,75 @@ suite("testIgvXhr", function () {
         u1 = "https://igv.genepattern.org/foo"
         u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
         assert.equal(mapUrl(u1), u2)
+    })
+
+    /**
+     * The mapping table (https://igv.org/data/url_mappings.tsv) is consulted only when a request fails.  Many of
+     * its entries are prospective -- the source url is still live, and must be served as-is until it isn't.
+     */
+    test("test retired url falls back to mapping", async function () {
+
+        this.timeout(10000)
+
+        // This bucket has been retired, it answers 403.  The table maps it to a copy on github.
+        const retiredUrl = "https://igv-genepattern-org.s3.us-east-1.amazonaws.com/genomes/genomes.tsv"
+        const result = await igvxhr.loadString(retiredUrl)
+        assert.ok(result.startsWith("# Hosted genomes list."))
+    })
+
+    test("test live url is not mapped", async function () {
+
+        this.timeout(10000)
+
+        // Present in the mapping table, but still live -- we must get the original resource, not the replacement
+        const liveUrl = "https://s3.us-east-1.amazonaws.com/igv.org.genomes/genomes.json"
+        const mappedUrl = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/genomes/legacy/genomes.json"
+
+        const result = await igvxhr.loadJson(liveUrl)
+        const mapped = await igvxhr.loadJson(mappedUrl)
+
+        assert.ok(Array.isArray(result))
+
+        // The two copies differ.  A failure here means the url was mapped when it should not have been -- or the
+        // bucket has finally been retired, in which case mapping is correct and this test should be removed.
+        assert.notDeepEqual(result, mapped)
+    })
+
+    test("test unmapped failure reports the original url", async function () {
+
+        this.timeout(10000)
+
+        const missingUrl = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/no-such-file-xyz"
+        try {
+            await igvxhr.loadString(missingUrl)
+            assert.fail("Expected an error")
+        } catch (e) {
+            assert.include(e.message, missingUrl)
+            assert.equal(e.status, 404)
+        }
+    })
+
+    test("test caller options are not modified", async function () {
+
+        const options = {responseType: "arraybuffer"}
+        await igvxhr.loadString("test/data/misc/BufferedReaderTest.bin", options)
+
+        // loadString forces responseType internally, and the retry helpers set flags -- none may leak back
+        assert.deepEqual(options, {responseType: "arraybuffer"})
+    })
+
+    test("test isMappable", function () {
+
+        // Failures that can mean a retired resource
+        for (let status of [0, 403, 404, 410]) {
+            assert.isTrue(isMappable({status}), `status ${status}`)
+        }
+
+        // A bad range, a server error, and an abort (rejects with an event, no status) tell us nothing about the url
+        for (let status of [416, 500, undefined]) {
+            assert.isFalse(isMappable({status}), `status ${status}`)
+        }
+        assert.isFalse(isMappable(undefined))
     })
 
 })
