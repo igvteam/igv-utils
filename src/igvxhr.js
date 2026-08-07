@@ -10,7 +10,8 @@ import Throttle from "./throttle.js"
 import {StringUtils} from "./index.js"
 
 const mappingURL = "https://igv.org/data/url_mappings.tsv"
-const MAPPING_TIMEOUT = 2000
+// Generous -- the mapping table is only fetched after a request has already failed, it is not on the main path
+const MAPPING_TIMEOUT = 5000
 
 class IGVXhr {
 
