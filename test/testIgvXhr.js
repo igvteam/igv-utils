@@ -295,6 +295,26 @@ suite("testIgvXhr", function () {
         assert.deepEqual(options, {responseType: "arraybuffer"})
     })
 
+    test("test timeout", async function () {
+
+        this.timeout(10000)
+
+        // TEST-NET-1 (RFC 5737), reserved and unroutable -- the connection hangs until we time it out
+        const url = "https://192.0.2.1/some/file.txt"
+
+        const start = Date.now()
+        try {
+            await igvxhr.loadString(url, {timeout: 500})
+            assert.fail("Expected a timeout")
+        } catch (e) {
+            assert.include(e.message, "Timed out")
+            assert.equal(e.status, 0)
+        }
+
+        // Guard against the timeout being ignored and the socket failing on its own much later
+        assert.isBelow(Date.now() - start, 8000)
+    })
+
     test("test isMappable", function () {
 
         // Failures that can mean a retired resource

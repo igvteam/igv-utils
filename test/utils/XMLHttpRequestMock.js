@@ -22,6 +22,9 @@ class XMLHttpRequestMock {
         this.onabort = undefined;
         this.response = undefined;
         this.headers = new Map();
+        this.timeout = 0;
+        this.timeoutId = undefined;
+        this.timedOut = false;
     }
 
     open(method, url) {
@@ -37,23 +40,53 @@ class XMLHttpRequestMock {
         this.impl.setRequestHeader(key, value);
     }
 
-    send() {
+    send(data) {
         const self = this;
         this.impl.responseType = this.responseType;
-        this.impl.onerror = this.onerror;
+        this.impl.timeout = this.timeout;
+
+        this.impl.onerror = function (event) {
+            self.clearTimeoutTimer();
+            if (typeof self.onerror === 'function') self.onerror(event);
+        }
         this.impl.ontimeout = this.ontimeout;
-        this.impl.onabort = this.onabort;
+        this.impl.onabort = function (event) {
+            self.clearTimeoutTimer();
+            // A timeout aborts the request -- ontimeout has already reported it, don't report it twice
+            if (!self.timedOut && typeof self.onabort === 'function') self.onabort(event);
+        }
         if (typeof this.onload === 'function') {
             this.impl.onload = function () {
+                self.clearTimeoutTimer();
                 self.status = self.impl.status;
                 self.response = self.impl.response;
                 self.onload();
             }
         }
-        this.impl.send();
+
+        // The vendored XMLHttpRequest honors the "timeout" property but never enforces it -- no timer is ever
+        // started.  Enforce it here so that timeout handling is exercised under test.
+        if (this.timeout) {
+            this.timeoutId = setTimeout(function () {
+                self.timedOut = true;
+                // Report before aborting: abort would otherwise settle the request with an abort event first
+                if (typeof self.ontimeout === 'function') self.ontimeout();
+                self.impl.abort();
+            }, this.timeout);
+        }
+
+        this.impl.send(data);
+    }
+
+    clearTimeoutTimer() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = undefined;
+        }
     }
 
     abort() {
+        this.clearTimeoutTimer();
         this.impl.abort();
     }
 
