@@ -4,19 +4,29 @@ import {gzip} from "../src/pako.esm.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
+import {XMLHttpRequestLocal} from "./utils/XMLHttpRequestLocal.js"
+import fs from "fs"
+import os from "os"
+import path from "path"
 
 suite("testIgvXhr", function () {
 
     const range = {start: 25, size: 100}
 
+    /**
+     * The fixture is 256 bytes, byte i holding the signed value -128 + i.  With no range the whole file is
+     * expected, otherwise just the requested slice.
+     */
     function verifyBytes(arrayBuffer, range) {
         assert.ok(arrayBuffer)
         const dataView = new DataView(arrayBuffer)
         const start = range ? range.start : 0
-        for (let i = 0; i <= range.size; i++) {
-            const expectedValue = -128 + range.start + i
-            const value = dataView.getInt8(i)
-            assert.equal(expectedValue, value)
+        const size = range ? range.size : arrayBuffer.byteLength
+
+        assert.equal(arrayBuffer.byteLength, size)
+        for (let i = 0; i < size; i++) {
+            const expectedValue = -128 + start + i
+            assert.equal(dataView.getInt8(i), expectedValue, `byte ${i}`)
         }
     }
 
@@ -27,7 +37,7 @@ suite("testIgvXhr", function () {
                 responseType: "arraybuffer",
                 range: range
             })
-        verifyBytes(data, assert)
+        verifyBytes(data, range)
     })
 
     test("test load file slice", async function () {
@@ -37,7 +47,7 @@ suite("testIgvXhr", function () {
                 responseType: "arraybuffer",
                 range: range
             })
-        verifyBytes(data, assert)
+        verifyBytes(data, range)
     })
 
 
@@ -72,7 +82,7 @@ suite("testIgvXhr", function () {
     test("test loadArrayBuffer", async function () {
         const url = "test/data/misc/BufferedReaderTest.bin"
         const data = await igvxhr.loadArrayBuffer(url, {})
-        verifyBytes(data, assert)
+        verifyBytes(data)
     })
 
     test("test loadArrayBuffer slice", async function () {
@@ -81,7 +91,60 @@ suite("testIgvXhr", function () {
             {
                 range: range
             })
-        verifyBytes(data, assert)
+        verifyBytes(data, range)
+    })
+
+    /**
+     * Some servers ignore the Range header and answer 200 with the whole file -- seen with very small files.
+     * igvxhr slices the response itself rather than handing the caller more data than it asked for.
+     */
+    test("test range ignored by server", async function () {
+
+        XMLHttpRequestLocal.ignoreRange = true
+        try {
+            const data = await igvxhr.loadArrayBuffer("test/data/misc/BufferedReaderTest.bin", {range})
+            verifyBytes(data, range)
+
+            // Same, for a text response -- sliced by character rather than byte
+            const text = await igvxhr.load("test/data/misc/NC_045512v2.fa", {range: {start: 13, size: 4}})
+            assert.equal(text, "ATTA")
+        } finally {
+            XMLHttpRequestLocal.ignoreRange = false
+        }
+    })
+
+    /**
+     * Slicing a large response wastes the bandwidth spent on the rest of it, so the user is warned -- once.
+     */
+    test("test range ignored warns once for a large response", async function () {
+
+        const bigFile = path.join(os.tmpdir(), "igvxhr-range-ignored.bin")
+        fs.writeFileSync(bigFile, Buffer.alloc(1024 * 1024 + 1000))
+
+        const warnings = []
+        const originalWarn = console.warn
+        const originalGiven = igvxhr.RANGE_WARNING_GIVEN
+
+        XMLHttpRequestLocal.ignoreRange = true
+        console.warn = (msg) => warnings.push(msg)
+        igvxhr.RANGE_WARNING_GIVEN = false
+
+        try {
+            const first = await igvxhr.loadArrayBuffer(bigFile, {range})
+            const second = await igvxhr.loadArrayBuffer(bigFile, {range})
+
+            // Still only the requested slice, however much the server sent
+            assert.equal(first.byteLength, range.size)
+            assert.equal(second.byteLength, range.size)
+
+            assert.equal(warnings.length, 1, "expected exactly one warning")
+            assert.include(warnings[0], "Range header ignored")
+        } finally {
+            console.warn = originalWarn
+            igvxhr.RANGE_WARNING_GIVEN = originalGiven
+            XMLHttpRequestLocal.ignoreRange = false
+            fs.unlinkSync(bigFile)
+        }
     })
 
     test("test loadString", async function () {
@@ -158,7 +221,7 @@ suite("testIgvXhr", function () {
     test("test loadArrayBuffer dataURI", async function () {
         const url = fileToDataURL("test/data/misc/BufferedReaderTest.bin")
         const data = await igvxhr.loadArrayBuffer(url, {})
-        verifyBytes(data, assert)
+        verifyBytes(data)
     })
 
     test("test loadArrayBuffer slice dataURI", async function () {
@@ -168,7 +231,7 @@ suite("testIgvXhr", function () {
                 range: range
             })
         assert.equal(data.byteLength, range.size)
-        verifyBytes(data, assert)
+        verifyBytes(data, range)
     })
 
     test("test loadJson dataURI", async function () {

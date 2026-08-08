@@ -12,6 +12,12 @@ import fs from 'fs';
  */
 class XMLHttpRequestLocal {
 
+    /**
+     * Set true to emulate a server that ignores the Range header, answering 200 with the whole file rather than
+     * 206 with the requested slice.  Seen in practice with very small files.
+     */
+    static ignoreRange = false
+
     constructor() {
         this.status = undefined;
         this.onload = undefined;
@@ -49,7 +55,7 @@ class XMLHttpRequestLocal {
         }
 
         let b;
-        const rangeString = this.headers.get('range');
+        const rangeString = XMLHttpRequestLocal.ignoreRange ? undefined : this.headers.get('range');
         if (rangeString && rangeString.startsWith('bytes=')) {
             const fd = fs.openSync(this.path, 'r');
             const tokens = rangeString.substring(6).split('-');
