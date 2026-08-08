@@ -481,6 +481,47 @@ suite("testIgvXhr", function () {
         assert.equal(arrayBufferToString(gzip(encoded).buffer), text)
     })
 
+    /**
+     * A timeout is a failure like any other -- the UCSC backup and cors proxy fallbacks apply to it, not just to
+     * an error response.  An earlier version rejected unconditionally after starting the retry, so the promise
+     * settled before the retry could resolve and neither fallback could ever take effect.
+     */
+    test("test timeout falls back to the UCSC backup host", async function () {
+
+        this.timeout(15000)
+
+        const originalHost = igvxhr.UCSC_HOST
+        const originalBackup = igvxhr.UCSC_BACKUP_HOST
+
+        // TEST-NET-1 hangs, so the request times out.  The "backup" is any host that answers.
+        igvxhr.UCSC_HOST = "192.0.2.1"
+        igvxhr.UCSC_BACKUP_HOST = "raw.githubusercontent.com"
+
+        try {
+            const url = "https://192.0.2.1/igvteam/igv-data/2fe36d006d7397812309caf4e3951466bb01dd25/genomes/gbk/NC_012920.1.gbk"
+            const result = await igvxhr.loadString(url, {timeout: 1000})
+            assert.ok(result.startsWith("LOCUS"))
+        } finally {
+            igvxhr.UCSC_HOST = originalHost
+            igvxhr.UCSC_BACKUP_HOST = originalBackup
+        }
+    })
+
+    test("test timeout falls back to the cors proxy", async function () {
+
+        this.timeout(15000)
+
+        const originalProxy = igvxhr.corsProxy
+        igvxhr.corsProxy = "https://raw.githubusercontent.com/igvteam/igv-data/2fe36d006d7397812309caf4e3951466bb01dd25/genomes/gbk/NC_012920.1.gbk"
+
+        try {
+            const result = await igvxhr.loadString("https://192.0.2.1/some/file.txt", {timeout: 1000})
+            assert.ok(result.startsWith("LOCUS"))
+        } finally {
+            igvxhr.corsProxy = originalProxy
+        }
+    })
+
     test("test isMappable", function () {
 
         // Failures that can mean a retired resource
