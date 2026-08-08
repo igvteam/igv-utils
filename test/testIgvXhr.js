@@ -1,5 +1,6 @@
 import "./utils/mockObjects.js"
-import igvxhr, {mapUrl, isMappable} from "../src/igvxhr.js"
+import igvxhr, {mapUrl, isMappable, arrayBufferToString} from "../src/igvxhr.js"
+import {gzip} from "../src/pako.esm.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
 import {createFile} from "./utils/File.js"
@@ -238,6 +239,14 @@ suite("testIgvXhr", function () {
         u1 = "https://igv.genepattern.org/foo"
         u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
         assert.equal(mapUrl(u1), u2)
+
+        u1 = "ftp://ftp.ncbi.nlm.nih.gov/geo/foo"
+        u2 = "https://ftp.ncbi.nlm.nih.gov/geo/foo"
+        assert.equal(mapUrl(u1), u2)
+
+        // Not a known mapping -- returned unchanged
+        u1 = "https://example.com/foo"
+        assert.equal(mapUrl(u1), u1)
     })
 
     /**
@@ -313,6 +322,100 @@ suite("testIgvXhr", function () {
 
         // Guard against the timeout being ignored and the socket failing on its own much later
         assert.isBelow(Date.now() - start, 8000)
+    })
+
+    /**
+     * The mappings table is fetched once and shared.  Requests issued before that fetch completes must all wait
+     * for it -- an earlier version installed the (empty) map before awaiting, so concurrent callers saw a
+     * populated-looking table and silently skipped mapping.
+     *
+     * The module caches the table for the life of the process, so this test needs its own copy of the module.
+     * A query string on the specifier defeats the ESM cache.
+     */
+    test("test concurrent loads share one mappings fetch", async function () {
+
+        this.timeout(20000)
+
+        const {default: freshXhr} = await import("../src/igvxhr.js?concurrent-mappings")
+
+        const retiredUrl = "https://igv-genepattern-org.s3.us-east-1.amazonaws.com/genomes/genomes.tsv"
+        const results = await Promise.all(
+            Array.from({length: 10}, () => freshXhr.loadString(retiredUrl)))
+
+        assert.equal(results.length, 10)
+        for (let result of results) {
+            assert.ok(result.startsWith("# Hosted genomes list."))
+        }
+    })
+
+    test("test cors proxy fallback", async function () {
+
+        this.timeout(10000)
+
+        // The proxy is called as <corsProxy>?url=<encoded original>.  Any static file that ignores unknown query
+        // parameters stands in for a real proxy -- we only need to prove the retry fired and its result was used.
+        const originalProxy = igvxhr.corsProxy
+        igvxhr.corsProxy = "https://raw.githubusercontent.com/igvteam/igv-data/2fe36d006d7397812309caf4e3951466bb01dd25/genomes/gbk/NC_012920.1.gbk"
+
+        try {
+            const result = await igvxhr.loadString("https://nonexistenthost.abc/foo")
+            assert.ok(result.startsWith("LOCUS"))
+        } finally {
+            igvxhr.corsProxy = originalProxy
+        }
+    })
+
+    /**
+     * "load" accepts a url, a function returning one, a promise, or a function returning a promise.
+     */
+    test("test url argument types", async function () {
+
+        const path = "test/data/json/example.json"
+
+        for (let url of [path, () => path, Promise.resolve(path), () => Promise.resolve(path)]) {
+            const result = await igvxhr.loadString(url)
+            assert.ok(result.startsWith("{\"employees\""), `url type ${typeof url}`)
+        }
+    })
+
+    test("test url argument of unsupported type", async function () {
+
+        try {
+            await igvxhr.load(42)
+            assert.fail("Expected an error")
+        } catch (e) {
+            assert.include(e.message, "url must be either")
+        }
+    })
+
+    test("test getContentLength of a file", async function () {
+
+        const file = createFile("test/data/json/example.json")
+        const contentLength = await igvxhr.getContentLength(file)
+        assert.equal(contentLength, file.size)
+    })
+
+    test("test getContentLength of a missing url", async function () {
+
+        this.timeout(10000)
+
+        // Failure is reported as -1, not thrown -- callers treat the length as unknown
+        const missingUrl = "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/no-such-file-xyz"
+        const contentLength = await igvxhr.getContentLength(missingUrl)
+        assert.equal(contentLength, -1)
+    })
+
+    /**
+     * All other fixtures are ASCII.  arrayBufferToString decodes with TextDecoder, these assert it handles
+     * multi-byte sequences, including a codepoint outside the BMP.
+     */
+    test("test decode multibyte utf-8", function () {
+
+        const text = "hello éà中文 🚀"
+        const encoded = new TextEncoder().encode(text)
+
+        assert.equal(arrayBufferToString(encoded.buffer), text)
+        assert.equal(arrayBufferToString(gzip(encoded).buffer), text)
     })
 
     test("test isMappable", function () {
