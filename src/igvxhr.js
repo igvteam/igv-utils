@@ -1,4 +1,3 @@
-
 import Oauth from "./oauth.js"
 import {isFile} from './fileUtils.js'
 import {parseUri} from './uriUtils.js'
@@ -354,7 +353,7 @@ class IGVXhr {
                     const result = await self._loadURL(backupUrl, options)
                     resolve(result)
                 } catch (e) {
-                    if(error) {
+                    if (error) {
                         handleError(error)
                     } else {
                         handleError(e)
@@ -577,6 +576,8 @@ function mapUrl(url) {
 
     if (url.startsWith("https://www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com")
+    } else if (url.startsWith("http://www.broadinstitute.org/igvdata")) {
+        return url.replace("http://www.broadinstitute.org/igvdata", "https://data.broadinstitute.org/igvdata");
     } else if (url.includes("//www.broadinstitute.org/igvdata")) {
         return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata")
     } else if (url.includes("//igvdata.broadinstitute.org")) {
