@@ -1,5 +1,5 @@
 import "./utils/mockObjects.js"
-import igvxhr, {mapUrl, isMappable, arrayBufferToString} from "../src/igvxhr.js"
+import igvxhr, {rewriteUrl, mapRetiredHost, isMappable, arrayBufferToString} from "../src/igvxhr.js"
 import {gzip} from "../src/pako.esm.js"
 import {assert} from 'chai'
 import {fileToDataURL} from "./utils/dataURL.js"
@@ -283,33 +283,68 @@ suite("testIgvXhr", function () {
     })
 
     /**
-     * Test URL mappings
+     * Rewrites are applied to every url before it is sent -- these urls cannot be fetched as written.
      */
-    test("test url mappings", function () {
+    test("test url rewrites", function () {
 
         let u1 = "https://www.dropbox.com/foo"
         let u2 = "https://dl.dropboxusercontent.com/foo"
-        assert.equal(mapUrl(u1), u2)
-
-        u1 = "https://www.broadinstitute.org/igvdata/foo"
-        u2 = "https://data.broadinstitute.org/igvdata/foo"
-        assert.equal(mapUrl(u1), u2)
-
-        u1 = "https://igvdata.broadinstitute.org/foo"
-        u2 = "https://s3.amazonaws.com/igv.broadinstitute.org/foo"
-        assert.equal(mapUrl(u1), u2)
-
-        u1 = "https://igv.genepattern.org/foo"
-        u2 = "https://igv-genepattern-org.s3.amazonaws.com/foo"
-        assert.equal(mapUrl(u1), u2)
+        assert.equal(rewriteUrl(u1), u2)
 
         u1 = "ftp://ftp.ncbi.nlm.nih.gov/geo/foo"
         u2 = "https://ftp.ncbi.nlm.nih.gov/geo/foo"
-        assert.equal(mapUrl(u1), u2)
+        assert.equal(rewriteUrl(u1), u2)
 
-        // Not a known mapping -- returned unchanged
-        u1 = "https://example.com/foo"
-        assert.equal(mapUrl(u1), u1)
+        // Idempotent -- a retry re-enters "load" with the already rewritten url
+        assert.equal(rewriteUrl(rewriteUrl("https://www.dropbox.com/foo")), "https://dl.dropboxusercontent.com/foo")
+
+        // Not a rewrite -- returned unchanged.  A retired host is not rewritten either, it is mapped on failure.
+        for (let url of ["https://example.com/foo", "https://igv.genepattern.org/foo"]) {
+            assert.equal(rewriteUrl(url), url)
+        }
+    })
+
+    /**
+     * Retired hosts are keyed by prefix and consulted only on failure, like the mapping table.
+     */
+    test("test retired host mappings", function () {
+
+        let u1 = "https://www.broadinstitute.org/igvdata/foo"
+        let u2 = "https://data.broadinstitute.org/igvdata/foo"
+        assert.equal(mapRetiredHost(u1), u2)
+
+        // The old urls are widely bookmarked as http, the replacement hosts are https only
+        u1 = "http://www.broadinstitute.org/igvdata/foo"
+        assert.equal(mapRetiredHost(u1), u2)
+
+        u1 = "https://igvdata.broadinstitute.org/foo"
+        u2 = "https://s3.amazonaws.com/igv.broadinstitute.org/foo"
+        assert.equal(mapRetiredHost(u1), u2)
+
+        // The bucket is region qualified -- the unqualified form is not a key in the mapping table, so a url
+        // mapped to it would find no further mapping when it too failed.
+        u1 = "https://igv.genepattern.org/foo"
+        u2 = "https://igv-genepattern-org.s3.us-east-1.amazonaws.com/foo"
+        assert.equal(mapRetiredHost(u1), u2)
+
+        // Not a retired host, and a replacement host does not map again
+        for (let url of ["https://example.com/foo", u2]) {
+            assert.isUndefined(mapRetiredHost(url))
+        }
+    })
+
+    /**
+     * igv.genepattern.org moved to an S3 bucket that has since been retired itself, and only the second hop is
+     * in the mapping table -- the prefix rule and the table have to compose.
+     */
+    test("test retired host maps through the mapping table", async function () {
+
+        this.timeout(20000)
+
+        const {default: freshXhr} = await import("../src/igvxhr.js?chained-mappings")
+
+        const result = await freshXhr.loadString("https://igv.genepattern.org/genomes/genomes.tsv")
+        assert.ok(result.startsWith("# Hosted genomes list."))
     })
 
     /**

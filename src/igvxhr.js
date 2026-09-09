@@ -119,6 +119,10 @@ class IGVXhr {
      */
     async _loadWithMapping(url, options) {
 
+        // Normalize once, here.  Everything downstream -- the throttle decision, and the cors proxy, UCSC backup,
+        // and oAuth retries inside _loadURL -- then works from the url the request was actually sent to.
+        url = rewriteUrl(url)
+
         try {
             // NOTE: "return await", not "return".  A bare return settles outside the try and the catch never runs.
             return await this._dispatch(url, {...options})
@@ -142,7 +146,8 @@ class IGVXhr {
      * Send a URL request, through the throttle for hosts that require it.
      */
     async _dispatch(url, options) {
-        if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://www.dropbox.com")) {
+        // NOTE: a dropbox url has already been rewritten to its dl.dropboxusercontent.com form by this point
+        if (GoogleUtils.isGoogleDriveURL(url) || url.startsWith("https://dl.dropboxusercontent.com")) {
             return this.googleThrottle.add(async () => {
                 return this._loadURL(url, options)
             })
@@ -156,8 +161,6 @@ class IGVXhr {
         const self = this
         const _url = url   // The unmodified URL, needed in case of an oAuth retry
         const {host} = parseUri(_url)
-
-        url = mapUrl(url)
 
         options = options || {}
 
@@ -569,25 +572,44 @@ function addTeamDrive(url) {
 }
 
 /**
- * Perform some well-known url mappings.
+ * Reshape a url that cannot be fetched as written.  These are not redirects -- the resource is where it always
+ * was -- so they are applied to every url before it is sent, and there is no failure to fall back from:
+ * www.dropbox.com answers 200 with an HTML page rather than the file, and XMLHttpRequest cannot speak ftp at all.
+ *
  * @param url
  */
-function mapUrl(url) {
+function rewriteUrl(url) {
 
     if (url.startsWith("https://www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com")
-    } else if (url.startsWith("http://www.broadinstitute.org/igvdata")) {
-        return url.replace("http://www.broadinstitute.org/igvdata", "https://data.broadinstitute.org/igvdata");
-    } else if (url.includes("//www.broadinstitute.org/igvdata")) {
-        return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata")
-    } else if (url.includes("//igvdata.broadinstitute.org")) {
-        return url.replace("//igvdata.broadinstitute.org", "//s3.amazonaws.com/igv.broadinstitute.org")
-    } else if (url.includes("//igv.genepattern.org")) {
-        return url.replace("//igv.genepattern.org", "//igv-genepattern-org.s3.amazonaws.com")
     } else if (url.startsWith("ftp://ftp.ncbi.nlm.nih.gov/geo")) {
         return url.replace("ftp://", "https://")
     } else {
         return url
+    }
+}
+
+/**
+ * Hosts that have moved wholesale.  Unlike the entries in the mapping table these are keyed by prefix, so one
+ * rule retires every resource under the old host.  The replacement hosts are https only.
+ */
+const RETIRED_HOSTS = [
+    ["//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata"],
+    ["//igvdata.broadinstitute.org", "//s3.amazonaws.com/igv.broadinstitute.org"],
+    ["//igv.genepattern.org", "//igv-genepattern-org.s3.us-east-1.amazonaws.com"]
+]
+
+/**
+ * Return the replacement for a url under a retired host, or undefined if it is not under one.  Consulted only on
+ * failure, like the mapping table -- these hosts are dead (404, connection refused, and 403 respectively), so a
+ * request to one always fails first.
+ */
+function mapRetiredHost(url) {
+    for (let [oldHost, newHost] of RETIRED_HOSTS) {
+        if (url.includes(oldHost)) {
+            // These urls are widely bookmarked in their original http form
+            return url.replace(oldHost, newHost).replace(/^http:/, "https:")
+        }
     }
 }
 
@@ -633,9 +655,9 @@ async function loadMappings() {
 }
 
 /**
- * Return the replacement for a retired URL, or undefined if there is none.
+ * Look the url up in the mapping table, fetching the table on first use.
  */
-async function getMapping(url) {
+async function lookupMapping(url) {
 
     // The mapping table is itself fetched with "load", it must not be mapped or we would recurse indefinitely.
     if (url === mappingURL) {
@@ -652,8 +674,26 @@ async function getMapping(url) {
     return mappedUrl === url ? undefined : mappedUrl
 }
 
+/**
+ * Return the replacement for a retired URL, or undefined if there is none.  Two sources are consulted: the
+ * prefix rules above, which retire a host wholesale, and the mapping table, which retires one file at a time.
+ * A url can need both -- igv.genepattern.org moved to an S3 bucket that has since been retired itself -- so the
+ * chain is followed, bounded in case an entry ever points back into one of the prefixes.
+ */
+async function getMapping(url) {
+
+    let mapped
+    let current = url
+    for (let i = 0; i < 5; i++) {
+        const next = mapRetiredHost(current) || await lookupMapping(current)
+        if (!next || next === current) break
+        mapped = current = next
+    }
+    return mapped
+}
+
 
 const igvxhr = new IGVXhr()
 
 export default igvxhr
-export {arrayBufferToString, mapUrl, isMappable}
+export {arrayBufferToString, rewriteUrl, mapRetiredHost, isMappable}
