@@ -121,7 +121,7 @@ class IGVXhr {
 
         // Normalize once, here.  Everything downstream -- the throttle decision, and the cors proxy, UCSC backup,
         // and oAuth retries inside _loadURL -- then works from the url the request was actually sent to.
-        url = rewriteUrl(url)
+        url = normalizeUrl(url)
 
         try {
             // NOTE: "return await", not "return".  A bare return settles outside the try and the catch never runs.
@@ -129,11 +129,12 @@ class IGVXhr {
         } catch (e) {
             if (!isMappable(e)) throw e
 
-            const mappedUrl = await getMapping(url)
+            const mappedUrl = await lookupMapping(url)
             if (!mappedUrl) throw e
 
             try {
-                return await this._dispatch(mappedUrl, {...options})
+                // The table can name a host that has since been retired -- normalize the substitute too
+                return await this._dispatch(normalizeUrl(mappedUrl), {...options})
             } catch (mappedError) {
                 // Surface the original failure, it names the url the caller actually asked for
                 e.cause = mappedError
@@ -590,8 +591,22 @@ function rewriteUrl(url) {
 }
 
 /**
+ * Put a url in the form it will be requested in: reshaped if it cannot be fetched as written, and moved to the
+ * current host if it names a retired one.  Applied to every url before it is sent -- both the url the caller
+ * asked for and any substitute from the mapping table.
+ */
+function normalizeUrl(url) {
+    url = rewriteUrl(url)
+    return mapRetiredHost(url) || url
+}
+
+/**
  * Hosts that have moved wholesale.  Unlike the entries in the mapping table these are keyed by prefix, so one
- * rule retires every resource under the old host.  The replacement hosts are https only.
+ * rule retires every resource under the old host, and they are certain -- the old host cannot serve the
+ * resource -- so they are applied before the request is sent.  The replacement hosts are https only.
+ *
+ * Order matters: the first matching prefix wins, so a rule for a path under a retired host must precede the
+ * rule for the host itself.
  */
 const RETIRED_HOSTS = [
     ["//data.broadinstitute.org/igvdata/tcga", "//igv.org/tcga"],
@@ -602,9 +617,8 @@ const RETIRED_HOSTS = [
 ]
 
 /**
- * Return the replacement for a url under a retired host, or undefined if it is not under one.  Consulted only on
- * failure, like the mapping table -- these hosts are dead (404, connection refused, and 403 respectively), so a
- * request to one always fails first.
+ * Return the replacement for a url under a retired host, or undefined if it is not under one.  These are not a
+ * fallback: the old host cannot serve the resource, so the substitution is made before the request goes out.
  */
 function mapRetiredHost(url) {
     for (let [oldHost, newHost] of RETIRED_HOSTS) {
@@ -657,7 +671,9 @@ async function loadMappings() {
 }
 
 /**
- * Look the url up in the mapping table, fetching the table on first use.
+ * Look the url up in the mapping table, fetching the table on first use.  Returns the replacement, or undefined
+ * if the url is not in the table.  Consulted only when a request has already failed -- most entries are
+ * prospective, the source url is still live and must be served as-is until it isn't.
  */
 async function lookupMapping(url) {
 
@@ -674,24 +690,6 @@ async function lookupMapping(url) {
 
     const mappedUrl = mappings.get(url)
     return mappedUrl === url ? undefined : mappedUrl
-}
-
-/**
- * Return the replacement for a retired URL, or undefined if there is none.  Two sources are consulted: the
- * prefix rules above, which retire a host wholesale, and the mapping table, which retires one file at a time.
- * A url can need both -- igv.genepattern.org moved to an S3 bucket that has since been retired itself -- so the
- * chain is followed, bounded in case an entry ever points back into one of the prefixes.
- */
-async function getMapping(url) {
-
-    let mapped
-    let current = url
-    for (let i = 0; i < 5; i++) {
-        const next = mapRetiredHost(current) || await lookupMapping(current)
-        if (!next || next === current) break
-        mapped = current = next
-    }
-    return mapped
 }
 
 

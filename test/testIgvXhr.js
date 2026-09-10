@@ -298,14 +298,14 @@ suite("testIgvXhr", function () {
         // Idempotent -- a retry re-enters "load" with the already rewritten url
         assert.equal(rewriteUrl(rewriteUrl("https://www.dropbox.com/foo")), "https://dl.dropboxusercontent.com/foo")
 
-        // Not a rewrite -- returned unchanged.  A retired host is not rewritten either, it is mapped on failure.
+        // Not a rewrite -- returned unchanged.  A retired host is handled by mapRetiredHost, not here.
         for (let url of ["https://example.com/foo", "https://igv.genepattern.org/foo"]) {
             assert.equal(rewriteUrl(url), url)
         }
     })
 
     /**
-     * Retired hosts are keyed by prefix and consulted only on failure, like the mapping table.
+     * Retired hosts are keyed by prefix, and are applied to every url before it is sent.
      */
     test("test retired host mappings", function () {
 
@@ -315,6 +315,11 @@ suite("testIgvXhr", function () {
 
         // The old urls are widely bookmarked as http, the replacement hosts are https only
         u1 = "http://www.broadinstitute.org/igvdata/foo"
+        assert.equal(mapRetiredHost(u1), u2)
+
+        // The first matching prefix wins -- the tcga data did not move with the rest of "igvdata"
+        u1 = "http://www.broadinstitute.org/igvdata/tcga/tcgascape/150601_regpeel/sample_info.txt"
+        u2 = "https://igv.org/tcga/tcgascape/150601_regpeel/sample_info.txt"
         assert.equal(mapRetiredHost(u1), u2)
 
         u1 = "https://igvdata.broadinstitute.org/foo"
@@ -334,8 +339,31 @@ suite("testIgvXhr", function () {
     })
 
     /**
+     * A retired host is mapped before the request goes out -- the old host is never contacted.  It cannot be
+     * left to a failure path: a cors block is indistinguishable from any other network error, so the cors proxy
+     * retry answers first and the resource is served from the retired host through the proxy.
+     */
+    test("test retired host is mapped before the request is sent", async function () {
+
+        const sent = []
+        const dispatch = igvxhr._dispatch
+        igvxhr._dispatch = function (url) {
+            sent.push(url)
+            return Promise.resolve("")
+        }
+        try {
+            await igvxhr.loadString("http://www.broadinstitute.org/igvdata/tcga/tcgascape/150601_regpeel/sample_info.txt")
+        } finally {
+            igvxhr._dispatch = dispatch
+        }
+
+        assert.deepEqual(sent, ["https://igv.org/tcga/tcgascape/150601_regpeel/sample_info.txt"])
+    })
+
+    /**
      * igv.genepattern.org moved to an S3 bucket that has since been retired itself, and only the second hop is
-     * in the mapping table -- the prefix rule and the table have to compose.
+     * in the mapping table -- the prefix rule, applied up front, and the table, consulted when the request to
+     * the bucket fails, have to compose.
      */
     test("test retired host maps through the mapping table", async function () {
 
