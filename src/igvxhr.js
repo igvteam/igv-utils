@@ -594,6 +594,8 @@ function rewriteUrl(url) {
  * rule retires every resource under the old host.  The replacement hosts are https only.
  */
 const RETIRED_HOSTS = [
+    ["//data.broadinstitute.org/igvdata/tcga", "//igv.org/tcga"],
+    ["//www.broadinstitute.org/igvdata/tcga", "//igv.org/tcga"],
     ["//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata"],
     ["//igvdata.broadinstitute.org", "//s3.amazonaws.com/igv.broadinstitute.org"],
     ["//igv.genepattern.org", "//igv-genepattern-org.s3.us-east-1.amazonaws.com"]
